@@ -1,4 +1,5 @@
 #!/bin/bash
+# If executed rather then sourced this won't update the environment.
 
 option=$1
 if test $# -eq 1
@@ -25,7 +26,7 @@ then
     # Unset previous rootcore if it was set:
     test "x${ROOTCOREBIN}" != "x" && source $ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh -u -q
     # Set it and find packages:
-    source $ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh -q Base,2.3.13
+    source $ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh -q Base,2.3.22
     $ROOTCOREBIN/bin/$ROOTCORECONFIG/rc find_packages > /dev/null
   else
     test "x$option" != "x--silent" && echo "Environment already set, did not set it again!"
@@ -60,7 +61,7 @@ else
   fi
 fi
 
-# Add environment variables needed by FastNetTool
+# Add environment variables
 NEW_ENV_FILE=new_env_file.sh
 for file in `find "$ROOTCOREBIN/.." -maxdepth 3 -mindepth 3 -path "*/cmt/*" -name "$NEW_ENV_FILE" `
 do
