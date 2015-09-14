@@ -1,13 +1,16 @@
 # Set rootcore environment
 source ./setrootcore.sh --silent
 
-# FIXME Low priority: set compilation to reset PWD
+# FIXME Low priority: set compilation to reset PWD, use dirs
 
 # This is needed to install boost
-cd RingerCore/cmt/
-if ! ./precompile.RootCore
+if test -e RingerCore/cmt;
 then
-  echo "Couldn't prepare boost installation..." && return 1;
+  cd RingerCore/cmt/
+  if ! ./precompile.RootCore
+  then
+    echo "Couldn't prepare boost installation..." && return 1;
+  fi
 fi
 
 cd - > /dev/null
