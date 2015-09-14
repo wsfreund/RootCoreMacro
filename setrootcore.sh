@@ -7,6 +7,8 @@ then
   shift
 fi
 
+release='Base,2.3.22'
+
 # source atlasLocalSetup
 if test "x$ATLAS_LOCAL_ROOT_BASE" = "x"
 then
@@ -21,13 +23,14 @@ then
   # Set to a stable release
   script_place="$(readlink -f $(dirname "$0"))"
   baseDir=$(basename "$ROOTCOREBIN")
-  if test "x${ROOTCOREBIN}" = "x" -o ! "$ROOTCOREBIN" = "$script_place/$baseDir"
+  # We only set the environment if it wasn't set to the desired release:
+  if test "x${ROOTCOREBIN}" = "x" -o "$ROOTCOREBIN" != "$script_place/$baseDir" -o "${release/,/ }" != "$(source $ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh -M)"
   then
-    # Unset previous rootcore if it was set:
+    # Unset previous rootcore
     test "x${ROOTCOREBIN}" != "x" && source $ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh -u -q
     # Set it and find packages:
-    source $ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh -q Base,2.3.22
-    $ROOTCOREBIN/bin/$ROOTCORECONFIG/rc find_packages > /dev/null
+    source $ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh -q -f $release > /dev/null
+    #$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc find_packages > /dev/null
   else
     test "x$option" != "x--silent" && echo "Environment already set, did not set it again!"
   fi
@@ -63,7 +66,8 @@ fi
 
 # Add environment variables
 NEW_ENV_FILE=new_env_file.sh
-for file in `find "$ROOTCOREBIN/.." -maxdepth 3 -mindepth 3 -path "*/cmt/*" -name "$NEW_ENV_FILE" `
+test "x$ROOTCOREBIN" = "x" && echo "For some reason ROOTCOREBIN is not set." && return 1
+for file in `find -L "$ROOTCOREBIN/.." -maxdepth 3 -mindepth 3 -path "*/cmt/*" -name "$NEW_ENV_FILE" `
 do
   test -x "$file" && source "$file" && test "x$option" != "x--silent" && echo "Adding $file to environment"
 done
