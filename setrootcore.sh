@@ -117,7 +117,7 @@ export NEW_ENV_FILE=new_env_file.sh
 test "x$ROOTCOREBIN" = "x" && echo "For some reason ROOTCOREBIN is not set." && return 1
 for file in `find -L "$ROOTCOREBIN/.." -maxdepth 3 -mindepth 3 -path "*/cmt/*" -name "$NEW_ENV_FILE" `
 do
-  test -x "$file" && source "$file" && { test "$silent" -eq 0 && echo "Adding $file to environment" }
+  test -x "$file" && source "$file" && { test "$silent" -eq 0 && echo "Adding $file to environment"; }
 done
 
 

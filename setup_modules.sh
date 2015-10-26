@@ -2,7 +2,7 @@
 
 show_help() {
 cat << EOF
-Usage: ${0##*/} [--dev] [--update [--head]]
+Usage: ${0##*/} [--dev] [--head]
 
 Initialize current master module and get child modules on their respective commits
 determined by the master module release.
@@ -12,10 +12,7 @@ determined by the master module release.
                    git push rights. Of course, this assumes that your
                    git account has the rights to do so, otherwise it will 
                    fail. 
-   --update        Use this option when you want to update the packge after 
-                   already having it initialized.
-   --head          If you use this option together with the update option, it
-                   will update to the submodules head instead of the used
+   --head          It will update to the submodules head instead of the used
                    commit versions stablished to be used by the packge.
 EOF
 }
@@ -38,7 +35,6 @@ mainmodule() {
 
 # The default values:
 dev=0
-update=0
 head=0
 
 while :; do
@@ -55,16 +51,6 @@ while :; do
         shift 2
         continue
       fi
-      ;;
-    --update)
-      if [ ${2#--} != $2 ]; then
-        update=1
-      else
-        update=$2
-        shift 2
-        continue
-      fi
-      continue
       ;;
     --head)
       if [ ${2#--} != $2 ]; then
@@ -96,12 +82,10 @@ if test "$dev" -eq "1"; then
   git submodule sync
 fi
 
-if test "$update" -eq "1"; then
-  if test "$head" -eq "0"; then
-    git submodule update --recursive
-  else
-    git pull --recurse-submodules
-  fi
+if test "$head" -eq "0"; then
+  git submodule update --recursive
+else
+  git pull --recurse-submodules
 fi
 
 true
