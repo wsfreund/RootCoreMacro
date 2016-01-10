@@ -1,6 +1,3 @@
-#!/bin/bash
-# If executed rather then sourced this won't update the environment.
-
 show_help() {
 cat << EOF
 Usage: ${0##*/} [--dev=1]
