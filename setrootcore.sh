@@ -1,6 +1,6 @@
 show_help() {
 cat << EOF
-Usage: ${0##*/} [--silent] [--release=Base,2.3.22]
+Usage: ${0##*/} [--silent] [--release=Base,2.3.22] [--no-env-setup]
 
 Set current shell to use this folder RootCore environment. This should be
 sourced, otherwise it won't change your shell environment and you may
@@ -14,12 +14,14 @@ no CVMFS access.
     -s|--silent       Don't print any message.
     -r|--release      The RootCore release it should use. This only takes
                       effect if used with CVMFS access. 
+   --no-env-setup     Do not source new environment files.
 EOF
 }
 
 # Default values
 silent=0
 release='Base,2.3.22'
+NO_ENV_SETUP=0
 
 while :; do
   case $1 in
@@ -55,6 +57,22 @@ while :; do
       echo 'ERROR: "--release" requires a non-empty option argument.\n' >&2
       exit 1
       ;;
+    --no-env-setup)
+      if [ ${2#--} != $2 ]; then
+        NO_ENV_SETUP=1
+      else
+        NO_ENV_SETUP=$2
+        shift 2
+        continue
+      fi
+      ;;
+    --no-env-setup=?*)
+      NO_ENV_SETUP=${1#*=} # Delete everything up to "=" and assign the remainder.
+      ;;
+    --no-env-setup=)   # Handle the case of an empty --no-env-setup=
+      echo 'ERROR: "--no-env-setup" requires a non-empty option argument.\n' >&2
+      exit 1
+      ;;
     --)              # End of all options.
       shift
       break
@@ -75,9 +93,9 @@ then
 fi
 
 
-if test -e $ATLAS_LOCAL_ROOT_BASE
+if test -e "$ATLAS_LOCAL_ROOT_BASE"
 then
-  source ${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh > /dev/null
+  source "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" > /dev/null
   # cvmfs exists
   # Set to a stable release
   script_place="$(readlink -f $(dirname "$0"))"
@@ -86,10 +104,10 @@ then
   if test "x${ROOTCOREBIN}" = "x" -o "$ROOTCOREBIN" != "$script_place/$baseDir" -o "${release/,/ }" != "$(source $ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh -M)"
   then
     # Unset previous rootcore
-    test "x${ROOTCOREBIN}" != "x" && source $ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh -u -q
+    test "x${ROOTCOREBIN}" != "x" && source "$ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh" -u -q
     # Set it and find packages:
-    source $ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh -q -f $release > /dev/null
-    #$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc find_packages > /dev/null
+    source "$ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh" -q -f $release > /dev/null
+    #"$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc" find_packages > /dev/null
   else
     test "$silent" -eq 0 && echo "Environment already set, did not set it again!"
   fi
@@ -97,7 +115,7 @@ else
   unset ATLAS_LOCAL_ROOT_BASE
   if test \! -e RootCore
   then
-    svn co svn+ssh://svn.cern.ch/reps/atlasoff/PhysicsAnalysis/D3PDTools/RootCore/tags/`svn ls svn+ssh://svn.cern.ch/reps/atlasoff/PhysicsAnalysis/D3PDTools/RootCore/tags | tail -n 1` RootCore
+    svn co "svn+ssh://svn.cern.ch/reps/atlasoff/PhysicsAnalysis/D3PDTools/RootCore/tags/`svn ls svn+ssh://svn.cern.ch/reps/atlasoff/PhysicsAnalysis/D3PDTools/RootCore/tags | tail -n 1`" RootCore
     cd RootCore
     svn upgrade > /dev/null
     cd -
@@ -114,7 +132,7 @@ else
     else
       test "$silent" -eq 0 && echo "Environment already set, did not set it again!"
     fi
-    if ! $ROOTCOREBIN/internal/rc find_packages > /dev/null
+    if ! "$ROOTCOREBIN/internal/rc" find_packages > /dev/null
     then
       echo "Couldn't find_packages!"
     fi
@@ -123,13 +141,19 @@ else
   fi
 fi
 
-# Add environment variables
-export NEW_ENV_FILE=new_env_file.sh
+# Check if everything was ok and load default environment.
 test "x$ROOTCOREBIN" = "x" && echo "For some reason ROOTCOREBIN is not set." && return 1
-for file in `find -L "$ROOTCOREBIN/.." -maxdepth 3 -mindepth 3 -path "*/cmt/*" -name "$NEW_ENV_FILE" `
-do
-  test -x "$file" && source "$file" && { test "$silent" -eq 0 && echo "Adding $file to environment"; }
-done
+source "$ROOTCOREBIN/../RootCoreMacros/base_env.sh"
+
+NEW_ENV_FILE="$(basename "$NEW_ENV_FILE")"
+
+# Add environment variables
+if test $NO_ENV_SETUP -eq "0"; then
+  for file in `find -L "$ROOTCOREBIN/.." -maxdepth 3 -mindepth 3 -path "*/cmt/*" -name "$NEW_ENV_FILE" `
+  do
+    test -x "$file" && source "$file" && { test "$silent" -eq 0 && echo "Adding $file to environment"; }
+  done
+fi
 
 
 true

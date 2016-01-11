@@ -18,5 +18,12 @@ add_to_env_file()
 {
   var=$1
   add_path=$2
-  echo "test \$(echo \":\$$var:\" | grep -q \":$add_path:\"; echo \$?) -ne 0 && export $var=$add_path:\$$var || true" >> $NEW_ENV_FILE
+  echo "test \$(echo \":\$$var:\" | grep -q \":$add_path:\"; echo \$?) -ne 0 && export \"$var=$add_path:\$$var\" || true" >> $NEW_ENV_FILE
+}
+
+add_to_env()
+{
+  var=$1
+  add_path=$2
+  test $(echo ":$(eval echo \$$var):" | grep -q ":$add_path:"; echo $?) -ne 0 && export "$var=$add_path:$(eval echo \$$var)" || true
 }

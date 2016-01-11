@@ -92,19 +92,34 @@ while :; do
   shift
 done
 
-# Update environment
+# Set RootCore environment
+source ./setrootcore.sh --silent --no-env-setup
+
+# If we are using LCG numpy, then add it to environment now:
+source "$ROOTCOREBIN/../RootCoreMacros/retrieve_python_info.sh" --numpy-info
+test "x$NUMPY_LCG" != "x" && add_to_env PYTHONPATH "$PYTHON_NUMPY_PATH"
+
+# Now add the new environment files
 source ./setrootcore.sh --silent
+
+# Remove old environment files (to be sure that we won't have old files on the environment):
+NEW_ENV_FILE="$(basename "$NEW_ENV_FILE")"
+# Remove all environment files
+for file in `find -L "$ROOTCOREBIN/.." -maxdepth 3 -mindepth 3 -path "*/cmt/*" -name "$NEW_ENV_FILE" `
+do
+  test -x "$file" && rm "$file"
+done
 
 # Compile
 test $clean -eq "1" && "$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc" clean
-test $distclean -eq "1" -a -n "$ROOTCOREBIN" && rm -r $ROOTCOREBIN/../Downloads/ $ROOTCOREBIN/../InstallArea
+test $distclean -eq "1" -a -n "$ROOTCOREBIN" && rm -r "$DEP_AREA" "$INSTALL_AREA"
 
 if ! "$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc" compile
 then
   echo "Error occured while trying to compile RootCore packages." && return 1;
 fi
 
-# Update environment
+# Finally, update user environment to the one needed by the installation
 source ./setrootcore.sh --silent
 
 true
