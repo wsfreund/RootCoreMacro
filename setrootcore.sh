@@ -1,6 +1,7 @@
 show_help() {
 cat << EOF
 Usage: ${0##*/} [--silent] [--release=Base,2.3.22] [--no-env-setup]
+                [--grid]
 
 Set current shell to use this folder RootCore environment. This should be
 sourced, otherwise it won't change your shell environment and you may
@@ -10,16 +11,19 @@ When no CVMFS is available, it will download the latest release using svn.
 Thus, you need to have svn installed to be able to set the environment with
 no CVMFS access.
 
-    -h                display this help and exit
+    -h                display this help and return
     -s|--silent       Don't print any message.
     -r|--release      The RootCore release it should use. This only takes
                       effect if used with CVMFS access. 
    --no-env-setup     Do not source new environment files.
+    --grid            Flag that environment should be set for the grid (set
+                      single-thread)
 EOF
 }
 
 # Default values
 silent=0
+grid=0
 release='Base,2.3.22'
 NO_ENV_SETUP=0
 
@@ -27,7 +31,7 @@ while :; do
   case $1 in
     -h|-\?|--help)   # Call a "show_help" function to display a synopsis, then exit.
       show_help
-      exit
+      return
       ;;
     -s|--silent)
       if [ ${2#--} != $2 ]; then
@@ -43,7 +47,7 @@ while :; do
       ;;
     -s=|--silent=)   # Handle the case of an empty --silent=
       echo 'ERROR: "--silent" requires a non-empty option argument.\n' >&2
-      exit 1
+      return 1
       ;;
     -r|--release)
       release=$2
@@ -55,7 +59,7 @@ while :; do
       ;;
     -r=|--release=)   # Handle the case of an empty --release=
       echo 'ERROR: "--release" requires a non-empty option argument.\n' >&2
-      exit 1
+      return 1
       ;;
     --no-env-setup)
       if [ ${2#--} != $2 ]; then
@@ -71,7 +75,23 @@ while :; do
       ;;
     --no-env-setup=)   # Handle the case of an empty --no-env-setup=
       echo 'ERROR: "--no-env-setup" requires a non-empty option argument.\n' >&2
-      exit 1
+      return 1
+      ;;
+    --grid)
+      if [ ${2#--} != $2 ]; then
+        grid=1
+      else
+        grid=$2
+        shift 2
+        continue
+      fi
+      ;;
+    --grid=?*)
+      grid=${1#*=} # Delete everything up to "=" and assign the remainder.
+      ;;
+    --grid=)   # Handle the case of an empty --grid=
+      echo 'ERROR: "--grid" requires a non-empty option argument.\n' >&2
+      return 1
       ;;
     --)              # End of all options.
       shift
@@ -91,7 +111,6 @@ if test "x$ATLAS_LOCAL_ROOT_BASE" = "x"
 then
   export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 fi
-
 
 if test -e "$ATLAS_LOCAL_ROOT_BASE"
 then
@@ -153,5 +172,15 @@ if test $NO_ENV_SETUP -eq "0"; then
   done
 fi
 
+# Override number of cores if in grid environment:
+if test $grid -eq 1; then 
+  export ROOTCORE_NCPUS=1; # RootCore, just to prevent mistakes
+  # We set all variables that armadillo may use as an library accelerator:
+  # TODO Maybe we want to tell armadillo to link to single-thread library
+  export OMP_NUM_THREADS=1; # AMD ACML (openMP) # works with gpu
+  export OPENBLAS_NUM_THREADS=1; # openblas
+  export GOTO_NUM_THREADS=1; # GotoBLAS2
+  export MKL_NUM_THREADS=1; # Intel MKL
+fi
 
 true

@@ -1,14 +1,22 @@
 show_help() {
 cat << EOF
-Usage: ${0##*/} [--clean|--distclean] [--grid]
+Usage: ${0##*/} [--clean|--veryclean|--distclean] [--cleanenv] [--grid]
 
 Compile RootCore environment and install it. This should be sourced, otherwise
 it won't change your shell environment and you may have issues using RootCore.
 
-    -h             display this help and exit
+    -h             display this help and return
+    --clean-env|--cleanenv
+                   This will clean environment files, although it won't reset
+                   the shell environment. It is better used with a new fresh
+                   cell before compiling.
     --clean        Clean previous RootCore binaries and recompile.
-    --distclean    As clean, but also clean previous installed dependencies before
+    --very-clean|--veryclean    
+                   As clean, but also clean previous environment files before
                    recompiling.
+    --dist-clean|--distclean    
+                   As veryclean, but also clean previous installed dependencies
+                   before recompiling.
     --grid         Flag that compilation is for the grid environment. 
 EOF
 }
@@ -16,13 +24,15 @@ EOF
 # Default values
 grid=0
 clean=0
+cleanenv=0
+veryclean=0
 distclean=0
 
 while :; do
   case $1 in
     -h|-\?|--help)   # Call a "show_help" function to display a synopsis, then exit.
       show_help
-      exit
+      return
       ;;
     --clean)
       if [ ${2#--} != $2 ]; then
@@ -38,30 +48,55 @@ while :; do
       ;;
     --clean=)   # Handle the case of an empty --clean=
       echo 'ERROR: "--clean" requires a non-empty option argument.\n' >&2
-      exit 1
+      return 1
+      ;;
+    --cleanenv|--clean-env)
+      if [ ${2#--} != $2 ]; then
+        cleanenv=1
+      else
+        cleanenv=$2
+        shift 2
+        continue
+      fi
+      ;;
+    --cleanenv=?*|--clean-env=?*)
+      cleanenv=${1#*=} # Delete everything up to "=" and assign the remainder.
+      ;;
+    --cleanenv=|--clean-env=)   # Handle the case of an empty --cleanenv=
+      echo 'ERROR: "--cleanenv" requires a non-empty option argument.\n' >&2
+      return 1
       ;;
     --distclean|--dist-clean)
       if [ ${2#--} != $2 ]; then
         distclean=1
-        clean=1
       else
         distclean=$2
-        if test "$distclean" -eq "1"; then
-          clean=1
-        fi
         shift 2
         continue
       fi
       ;;
     --distclean=?*|--dist-clean=?*)
       distclean=${1#*=} # Delete everything up to "=" and assign the remainder.
-      if test "$distclean" -eq "1"; then
-        clean=1
-      fi
       ;;
     --distclean=|--dist-clean=)   # Handle the case of an empty --distclean=
       echo 'ERROR: "--distclean" requires a non-empty option argument.\n' >&2
-      exit 1
+      return 1
+      ;;
+    --veryclean|--very-clean)
+      if [ ${2#--} != $2 ]; then
+        veryclean=1
+      else
+        veryclean=$2
+        shift 2
+        continue
+      fi
+      ;;
+    --veryclean=?*|--very-clean=?*)
+      veryclean=${1#*=} # Delete everything up to "=" and assign the remainder.
+      ;;
+    --veryclean=|--very-clean=)   # Handle the case of an empty --veryclean=
+      echo 'ERROR: "--veryclean" requires a non-empty option argument.\n' >&2
+      return 1
       ;;
     --grid)
       if [ ${2#--} != $2 ]; then
@@ -77,7 +112,7 @@ while :; do
       ;;
     --grid=)   # Handle the case of an empty --grid=
       echo 'ERROR: "--grid" requires a non-empty option argument.\n' >&2
-      exit 1
+      return 1
       ;;
     --)              # End of all options.
       shift
@@ -92,14 +127,17 @@ while :; do
   shift
 done
 
+test $veryclean -eq 1 && clean=1;
+test $distclean -eq 1 && clean=1 && veryclean=1;
+
 # Set RootCore environment
-source ./setrootcore.sh --silent --no-env-setup
+source ./setrootcore.sh --silent --no-env-setup "--grid=$grid"
 
 # Compile
 test $clean -eq "1" && "$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc" clean
-if test $distclean -eq "1"; then
-  echo "cleaning everything..."
-  rm -rf "$DEP_AREA" "$INSTALL_AREA"
+
+if test $veryclean -eq 1 -o $cleanenv -eq 1; then
+  echo "removing environment-files..."
   # Remove old environment files (to be sure that we won't have old files on the environment):
   for file in `find -L "$ROOTCOREBIN/.." -maxdepth 3 -mindepth 3 -path "*/cmt/*" -name "$BASE_NEW_ENV_FILE" `
   do
@@ -107,8 +145,13 @@ if test $distclean -eq "1"; then
   done
 fi
 
+if test $distclean -eq "1"; then
+  echo "cleaning everything..."
+  rm -rf "$DEP_AREA" "$INSTALL_AREA"
+fi
+
 # Now add the new environment files
-source ./setrootcore.sh --silent
+source ./setrootcore.sh --silent "--grid=$grid"
 
 if ! "$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc" compile
 then
@@ -116,6 +159,6 @@ then
 fi
 
 # Finally, update user environment to the one needed by the installation
-source ./setrootcore.sh --silent
+source ./setrootcore.sh --silent "--grid=$grid"
 
 true

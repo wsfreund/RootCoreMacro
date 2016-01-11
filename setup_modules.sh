@@ -7,7 +7,7 @@ Usage: ${0##*/} [--dev] [--head]
 Initialize current master module and get child modules on their respective commits
 determined by the master module release.
 
-    -h                display this help and exit
+    -h                display this help and return
     -d|--dev          If set to true, then retrieve commited packages with 
                       your ssh git push rights. Of course, this assumes that
                       your git account has the rights to do so, otherwise it
@@ -41,7 +41,7 @@ while :; do
   case $1 in
     -h|-\?|--help)   # Call a "show_help" function to display a synopsis, then exit.
       show_help
-      exit
+      return
       ;;
     --dev)
       if [ ${2#--} != $2 ]; then
@@ -57,7 +57,7 @@ while :; do
       ;;
     -d=|--dev=)   # Handle the case of an empty --dev=
       echo 'ERROR: "--dev" requires a non-empty option argument.\n' >&2
-      exit 1
+      return 1
       ;;
     --head)
       if [ ${2#--} != $2 ]; then
@@ -74,7 +74,7 @@ while :; do
       ;;
     -H=|--head=)   # Handle the case of an empty --head=
       echo 'ERROR: "--head" requires a non-empty option argument.\n' >&2
-      exit 1
+      return 1
       ;;
     --)              # End of all options.
       shift
@@ -89,17 +89,24 @@ while :; do
   shift
 done
 
+git pull
+
 git submodule init
 if test "$dev" -eq "1"; then
   moduleFile=$(mainmodule)/.gitmodules
   sed -i.bak "s_\(\S*url = \)https://github.com/\(.*\)_\1git@github.com:\2_" $moduleFile
-  git submodule sync
 fi
+
+git submodule sync
 
 if test "$head" -eq "0"; then
   git submodule update --recursive
-else
-  git pull --recurse-submodules
+else # head
+  if ! git pull --recurse-submodules
+  then
+    git submodule foreach --recursive checkout master
+    git submodule foreach --recursive git pull origin master
+  fi
 fi
 
 true
