@@ -1,6 +1,6 @@
 show_help() {
 cat << EOF
-Usage: ${0##*/} [--dev=1]
+Usage: ${0##*/} [--silent] [--release=Base,2.3.22]
 
 Set current shell to use this folder RootCore environment. This should be
 sourced, otherwise it won't change your shell environment and you may
@@ -10,10 +10,10 @@ When no CVMFS is available, it will download the latest release using svn.
 Thus, you need to have svn installed to be able to set the environment with
 no CVMFS access.
 
-    -h             display this help and exit
-    --silent       Don't print any message.
-    --release      The RootCore release it should use. This only takes effect
-                   if used with CVMFS access. 
+    -h                display this help and exit
+    -s|--silent       Don't print any message.
+    -r|--release      The RootCore release it should use. This only takes
+                      effect if used with CVMFS access. 
 EOF
 }
 
@@ -27,7 +27,7 @@ while :; do
       show_help
       exit
       ;;
-    --silent)
+    -s|--silent)
       if [ ${2#--} != $2 ]; then
         silent=1
       else
@@ -36,10 +36,24 @@ while :; do
         continue
       fi
       ;;
-    --release)
+    -s=?*|--silent=?*)
+      silent=${1#*=} # Delete everything up to "=" and assign the remainder.
+      ;;
+    -s=|--silent=)   # Handle the case of an empty --silent=
+      echo 'ERROR: "--silent" requires a non-empty option argument.\n' >&2
+      exit 1
+      ;;
+    -r|--release)
       release=$2
       shift 2
       continue
+      ;;
+    -r=?*|--release=?*)
+      release=${1#*=} # Delete everything up to "=" and assign the remainder.
+      ;;
+    -r=|--release=)   # Handle the case of an empty --release=
+      echo 'ERROR: "--release" requires a non-empty option argument.\n' >&2
+      exit 1
       ;;
     --)              # End of all options.
       shift

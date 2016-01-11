@@ -7,13 +7,13 @@ Usage: ${0##*/} [--dev] [--head]
 Initialize current master module and get child modules on their respective commits
 determined by the master module release.
 
-    -h             display this help and exit
-    --dev          If set to true, then retrieve commited packages with 
-                   git push rights. Of course, this assumes that your
-                   git account has the rights to do so, otherwise it will 
-                   fail. 
-   --head          It will update to the submodules head instead of the used
-                   commit versions stablished to be used by the packge.
+    -h                display this help and exit
+    -d|--dev          If set to true, then retrieve commited packages with 
+                      your ssh git push rights. Of course, this assumes that
+                      your git account has the rights to do so, otherwise it
+                      will fail. 
+   -H|--head          It will update to the submodules head instead of the used
+                      commit versions stablished to be used by the packge.
 EOF
 }
 
@@ -52,6 +52,13 @@ while :; do
         continue
       fi
       ;;
+    -d=?*|--dev=?*)
+      dev=${1#*=} # Delete everything up to "=" and assign the remainder.
+      ;;
+    -d=|--dev=)   # Handle the case of an empty --dev=
+      echo 'ERROR: "--dev" requires a non-empty option argument.\n' >&2
+      exit 1
+      ;;
     --head)
       if [ ${2#--} != $2 ]; then
         head=1
@@ -61,6 +68,13 @@ while :; do
         continue
       fi
       continue
+      ;;
+    -H=?*|--head=?*)
+      head=${1#*=} # Delete everything up to "=" and assign the remainder.
+      ;;
+    -H=|--head=)   # Handle the case of an empty --head=
+      echo 'ERROR: "--head" requires a non-empty option argument.\n' >&2
+      exit 1
       ;;
     --)              # End of all options.
       shift
