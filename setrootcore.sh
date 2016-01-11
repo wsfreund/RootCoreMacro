@@ -145,11 +145,9 @@ fi
 test "x$ROOTCOREBIN" = "x" && echo "For some reason ROOTCOREBIN is not set." && return 1
 source "$ROOTCOREBIN/../RootCoreMacros/base_env.sh"
 
-NEW_ENV_FILE="$(basename "$NEW_ENV_FILE")"
-
 # Add environment variables
 if test $NO_ENV_SETUP -eq "0"; then
-  for file in `find -L "$ROOTCOREBIN/.." -maxdepth 3 -mindepth 3 -path "*/cmt/*" -name "$NEW_ENV_FILE" `
+  for file in `find -L "$ROOTCOREBIN/.." -maxdepth 3 -mindepth 3 -path "*/cmt/*" -name "$BASE_NEW_ENV_FILE" `
   do
     test -x "$file" && source "$file" && { test "$silent" -eq 0 && echo "Adding $file to environment"; }
   done
