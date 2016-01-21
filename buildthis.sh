@@ -17,6 +17,9 @@ it won't change your shell environment and you may have issues using RootCore.
     --dist-clean|--distclean    
                    As veryclean, but also clean previous installed dependencies
                    before recompiling.
+    --no-build     Use this flag if you don't want to build the RootCore packages.
+                   When combined with the cleaning flags, it can be used to
+                   set package to start conditions.
     --grid         Flag that compilation is for the grid environment. 
 EOF
 }
@@ -27,6 +30,7 @@ clean=0
 cleanenv=0
 veryclean=0
 distclean=0
+nobuild=0
 
 while :; do
   case $1 in
@@ -98,6 +102,22 @@ while :; do
       echo 'ERROR: "--veryclean" requires a non-empty option argument.\n' >&2
       return 1
       ;;
+    --no-build|nobuild)
+      if [ ${2#--} != $2 ]; then
+        nobuild=1
+      else
+        nobuild=$2
+        shift 2
+        continue
+      fi
+      ;;
+    --no-build=?*|nobuild=?*)
+      nobuild=${1#*=} # Delete everything up to "=" and assign the remainder.
+      ;;
+    --no-build=|nobuild=)   # Handle the case of an empty --nobuild=
+      echo 'ERROR: "--no-build" requires a non-empty option argument.\n' >&2
+      return 1
+      ;;
     --grid)
       if [ ${2#--} != $2 ]; then
         grid=1
@@ -137,7 +157,7 @@ source ./setrootcore.sh --silent --no-env-setup "--grid=$grid"
 test $clean -eq "1" && "$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc" clean
 
 if test $veryclean -eq 1 -o $cleanenv -eq 1; then
-  echo "removing environment-files..."
+  echo "cleaning environment-files..."
   # Remove old environment files (to be sure that we won't have old files on the environment):
   for file in `find -L "$ROOTCOREBIN/.." -maxdepth 3 -mindepth 3 -path "*/cmt/*" -name "$BASE_NEW_ENV_FILE" `
   do
@@ -153,9 +173,10 @@ fi
 # Now add the new environment files
 source ./setrootcore.sh --silent "--grid=$grid"
 
-if ! "$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc" compile
-then
-  echo "Error occured while trying to compile RootCore packages." && return 1;
+if test $nobuild -eq "0"; then
+  if ! "$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc" compile; then
+    echo "Error occured while trying to compile RootCore packages." && return 1;
+  fi
 fi
 
 # Finally, update user environment to the one needed by the installation
