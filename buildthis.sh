@@ -1,6 +1,6 @@
 show_help() {
 cat << EOF
-Usage: ${0##*/} [--clean|--veryclean|--distclean] [--cleanenv] [--grid]
+Usage: ${0##*/} [--clean|--veryclean|--distclean] [--no-build] [--cleanenv] [--grid]
 
 Compile RootCore environment and install it. This should be sourced, otherwise
 it won't change your shell environment and you may have issues using RootCore.
@@ -177,6 +177,8 @@ if test $nobuild -eq "0"; then
   if ! "$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc" compile; then
     echo "Error occured while trying to compile RootCore packages." && return 1;
   fi
+else
+  echo "--no-build flag set, skipped building..."
 fi
 
 # Finally, update user environment to the one needed by the installation
