@@ -161,7 +161,8 @@ else
 fi
 
 # Check if everything was ok and load default environment.
-test "x$ROOTCOREBIN" = "x" && echo "For some reason ROOTCOREBIN is not set." && return 1
+test "x$ROOTCOREBIN" = "x" && echo "FAILED: For some reason ROOTCOREBIN is not set. Skipping..." && return 1
+
 source "$ROOTCOREBIN/../RootCoreMacros/base_env.sh"
 
 # Add environment variables
@@ -173,7 +174,9 @@ if test $NO_ENV_SETUP -eq "0"; then
 fi
 
 # Override number of cores if in grid environment:
+export RCM_GRID_ENV=0
 if test $grid -eq 1; then 
+  export RCM_GRID_ENV=1; # Tell packages that we are on grid
   export ROOTCORE_NCPUS=1; # RootCore, just to prevent mistakes
   # We set all variables that armadillo may use as an library accelerator:
   # TODO Maybe we want to tell armadillo to link to single-thread library
@@ -181,6 +184,12 @@ if test $grid -eq 1; then
   export OPENBLAS_NUM_THREADS=1; # openblas
   export GOTO_NUM_THREADS=1; # GotoBLAS2
   export MKL_NUM_THREADS=1; # Intel MKL
+else
+  export RCM_GRID_ENV=0;
+  export OMP_NUM_THREADS=$ROOTCORE_NCPUS;
+  export OPENBLAS_NUM_THREADS=$ROOTCORE_NCPUS; # openblas
+  export GOTO_NUM_THREADS=$ROOTCORE_NCPUS; # GotoBLAS2
+  export MKL_NUM_THREADS=$ROOTCORE_NCPUS; # Intel MKL
 fi
 
 true

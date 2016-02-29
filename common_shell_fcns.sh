@@ -16,9 +16,42 @@ find_lib()
 
 add_to_env_file()
 {
-  var=$1
-  add_path=$2
-  echo "test \$(echo \":\$$var:\" | grep -q \":$add_path:\"; echo \$?) -ne 0 && export \"$var=$add_path:\$$var\" || true" >> $NEW_ENV_FILE
+  # Default values
+  only_set=0
+  var=""
+  value=""
+  while :; do
+    case $1 in
+      --only-set)
+        only_set=1
+        ;;
+      --)              # End of all options.
+        shift
+        break
+        ;;
+      -?*)
+        echo 'WARN: Unknown option (ignored): %s\n' "$1" >&2
+        ;;
+      *)               # Default case: If no more options then break out of the loop.
+        if test "x$1" != "x"; then
+          if test "x$var" = "x"; then
+            var="$1"
+          elif test "x$value" = "x"; then
+            value="$1"
+          else
+            echo 'WARN: Did not know what to do with argument (ignored): %s\n' "$1" >&2
+          fi
+        else
+          break
+        fi
+    esac
+    shift
+  done
+  if test "$only_set" -eq "0"; then
+    echo "test \$(echo \":\$$var:\" | grep -q \":$value:\"; echo \$?) -ne 0 && export \"$var\"=\"$value:\$$var\" || true" >> $NEW_ENV_FILE
+  else
+    echo "export \"$var\"=\"$value\"" >> $NEW_ENV_FILE
+  fi
 }
 
 add_to_env()

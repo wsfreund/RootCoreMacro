@@ -20,6 +20,8 @@ it won't change your shell environment and you may have issues using RootCore.
     --no-build     Use this flag if you don't want to build the RootCore packages.
                    When combined with the cleaning flags, it can be used to
                    set package to start conditions.
+    --with-{var}   Set environment variable \${VAR} to true. This only makes effect
+                   if some depedent package checks for this variable.
     --grid         Flag that compilation is for the grid environment. 
 EOF
 }
@@ -134,6 +136,10 @@ while :; do
       echo 'ERROR: "--grid" requires a non-empty option argument.\n' >&2
       return 1
       ;;
+    --with-?*)
+      eval "export $(echo ${1#--with-} | tr "[a-z]" "[A-Z]" | tr "-" "_")=1" # Assign variable to true.
+      ;;
+      # TODO Grep = value
     --)              # End of all options.
       shift
       break

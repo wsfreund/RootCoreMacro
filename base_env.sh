@@ -14,8 +14,8 @@ fi
 
 test "x$ROOTCOREBIN" = "x" && { echo "\$ROOTCOREBIN isn't set."  && return 1; }
 
-DEP_AREA="$ROOTCOREBIN/../Downloads"; DEP_AREA_BSLASH="\$ROOTCOREBIN/../Downloads"
-INSTALL_AREA="$ROOTCOREBIN/../InstallArea"; INSTALL_AREA_BSLASH="\$ROOTCOREBIN/../InstallArea"
+DEP_AREA="$ROOTCOREBIN/../Downloads"; DEP_AREA_BSLASH="\${ROOTCOREBIN}/../Downloads"
+INSTALL_AREA="$ROOTCOREBIN/../InstallArea"; INSTALL_AREA_BSLASH="\${ROOTCOREBIN}/../InstallArea"
 
 # Make sure the folders exist
 test \! -d "$DEP_AREA" && mkdir -p "$DEP_AREA"
