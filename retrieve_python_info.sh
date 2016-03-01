@@ -72,7 +72,7 @@ do
   then
     if test -e $candidate/import.h -o -e $candidate/pyconfig.h
     then
-      PYTHON_INCLUDE_PATH="$PYTHON_INCLUDE_PATH $include_marker$candidate"
+      PYTHON_INCLUDE_PATH="$PYTHON_INCLUDE_PATH $include_system_marker$candidate"
     fi
   fi
 done
