@@ -67,7 +67,6 @@ while :; do
         shift 2
         continue
       fi
-      continue
       ;;
     -H=?*|--head=?*)
       head=${1#*=} # Delete everything up to "=" and assign the remainder.
