@@ -136,10 +136,10 @@ else
   then
     svn co "svn+ssh://svn.cern.ch/reps/atlasoff/PhysicsAnalysis/D3PDTools/RootCore/tags/`svn ls svn+ssh://svn.cern.ch/reps/atlasoff/PhysicsAnalysis/D3PDTools/RootCore/tags | tail -n 1`" RootCore
     cd RootCore
-    svn upgrade > /dev/null
+    svn upgrade
     cd -
   else 
-    test \! -e RootCore && echo "Cannot find a RootCore.tgz to compile in standalone." && return 1
+    test \! -e RootCore && echo "Couldn't find retrieve RootCore to compile in standalone." && return 1
   fi
   if test -e RootCore
   then 
