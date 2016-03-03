@@ -14,7 +14,7 @@ Table of Contents
       * [To do and known bugs:](#to-do-and-known-bugs)
     * [buildthis.sh](#buildthissh)
       * [Procedure for a clean build](#procedure-for-a-clean-build)
-    * [To do and known bugs](#to-do-and-known-bugs-1)
+      * [To do and known bugs](#to-do-and-known-bugs-1)
     * [setup_modules.sh](#setup_modulessh)
       * [Retrieving framework source codes for the first time](#retrieving-framework-source-codes-for-the-first-time)
       * [Updating the framework to the last stable release](#updating-the-framework-to-the-last-stable-release)
@@ -153,7 +153,7 @@ Some cases where this may be needed:
 - Add or removal of package dependencies on `precompile.sh`;
 - Need to change the shell environment variables order. 
 
-## To do and known bugs
+### To do and known bugs
 
 - Make it python managed;
 - When using svn RootCore, it is needed to execute the script several times to have a successful build.
