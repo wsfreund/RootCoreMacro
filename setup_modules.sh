@@ -17,6 +17,13 @@ determined by the master module release.
 EOF
 }
 
+# Taken from: http://stackoverflow.com/a/28776166/1162884
+([[ -n $ZSH_EVAL_CONTEXT && $ZSH_EVAL_CONTEXT =~ :file$ ]] || 
+ [[ -n $KSH_VERSION && $(cd "$(dirname -- "$0")" &&
+    printf '%s' "${PWD%/}/")$(basename -- "$0") != "${.sh.file}" ]] || 
+ [[ -n $BASH_VERSION && $0 != "$BASH_SOURCE" ]]) && sourced=1 || sourced=0
+
+
 mainmodule() {       
   currentPath=$PWD
   mainModule=$currentPath
@@ -41,7 +48,7 @@ while :; do
   case $1 in
     -h|-\?|--help)   # Call a "show_help" function to display a synopsis, then exit.
       show_help
-      return
+      test "$sourced" -eq 1 && return || exit
       ;;
     --dev)
       if [ ${2#--} != $2 ]; then
@@ -57,7 +64,7 @@ while :; do
       ;;
     -d=|--dev=)   # Handle the case of an empty --dev=
       echo 'ERROR: "--dev" requires a non-empty option argument.\n' >&2
-      return 1
+      test "$sourced" -eq 1 && return 1 || exit 1
       ;;
     --head)
       if [ ${2#--} != $2 ]; then
@@ -73,7 +80,7 @@ while :; do
       ;;
     -H=|--head=)   # Handle the case of an empty --head=
       echo 'ERROR: "--head" requires a non-empty option argument.\n' >&2
-      return 1
+      test ""$sourced"" -eq "1" && return 1 || exit 1
       ;;
     --)              # End of all options.
       shift

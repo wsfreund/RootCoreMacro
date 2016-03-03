@@ -5,7 +5,7 @@ Usage: ${0##*/} [--numpy-path]
 Retrieve python information.
 
     -h             display this help and exit
-    --numpy-info   Export python related information. Default 1
+    --numpy-info   Export python related information.
 EOF
 }
 

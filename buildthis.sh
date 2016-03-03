@@ -21,10 +21,16 @@ it won't change your shell environment and you may have issues using RootCore.
                    When combined with the cleaning flags, it can be used to
                    set package to start conditions.
     --with-{var}   Set environment variable \${VAR} to true. This only makes effect
-                   if some depedent package checks for this variable.
+                   if some dependent package checks for this variable.
     --grid         Flag that compilation is for the grid environment. 
 EOF
 }
+
+# Taken from: http://stackoverflow.com/a/28776166/1162884
+([[ -n $ZSH_EVAL_CONTEXT && $ZSH_EVAL_CONTEXT =~ :file$ ]] || 
+ [[ -n $KSH_VERSION && $(cd "$(dirname -- "$0")" &&
+    printf '%s' "${PWD%/}/")$(basename -- "$0") != "${.sh.file}" ]] || 
+ [[ -n $BASH_VERSION && $0 != "$BASH_SOURCE" ]]) && sourced=1 || sourced=0
 
 # Default values
 grid=0
@@ -38,7 +44,7 @@ while :; do
   case $1 in
     -h|-\?|--help)   # Call a "show_help" function to display a synopsis, then exit.
       show_help
-      return
+      test "$sourced" -eq 1 && return || exit
       ;;
     --clean)
       if [ ${2#--} != $2 ]; then
@@ -54,7 +60,7 @@ while :; do
       ;;
     --clean=)   # Handle the case of an empty --clean=
       echo 'ERROR: "--clean" requires a non-empty option argument.\n' >&2
-      return 1
+      test "$sourced" -eq 1 && return 1 || exit 1
       ;;
     --cleanenv|--clean-env)
       if [ ${2#--} != $2 ]; then
@@ -70,7 +76,7 @@ while :; do
       ;;
     --cleanenv=|--clean-env=)   # Handle the case of an empty --cleanenv=
       echo 'ERROR: "--cleanenv" requires a non-empty option argument.\n' >&2
-      return 1
+      test "$sourced" -eq 1 && return 1 || exit 1
       ;;
     --distclean|--dist-clean)
       if [ ${2#--} != $2 ]; then
@@ -86,7 +92,7 @@ while :; do
       ;;
     --distclean=|--dist-clean=)   # Handle the case of an empty --distclean=
       echo 'ERROR: "--distclean" requires a non-empty option argument.\n' >&2
-      return 1
+      test "$sourced" -eq 1 && return 1 || exit 1
       ;;
     --veryclean|--very-clean)
       if [ ${2#--} != $2 ]; then
@@ -102,7 +108,7 @@ while :; do
       ;;
     --veryclean=|--very-clean=)   # Handle the case of an empty --veryclean=
       echo 'ERROR: "--veryclean" requires a non-empty option argument.\n' >&2
-      return 1
+      test "$sourced" -eq 1 && return 1 || exit 1
       ;;
     --no-build|nobuild)
       if [ ${2#--} != $2 ]; then
@@ -118,7 +124,7 @@ while :; do
       ;;
     --no-build=|nobuild=)   # Handle the case of an empty --nobuild=
       echo 'ERROR: "--no-build" requires a non-empty option argument.\n' >&2
-      return 1
+      test "$sourced" -eq 1 && return 1 || exit 1
       ;;
     --grid)
       if [ ${2#--} != $2 ]; then
@@ -134,7 +140,7 @@ while :; do
       ;;
     --grid=)   # Handle the case of an empty --grid=
       echo 'ERROR: "--grid" requires a non-empty option argument.\n' >&2
-      return 1
+      test "$sourced" -eq 1 && return 1 || exit 1
       ;;
     --with-?*)
       eval "export $(echo ${1#--with-} | tr "[a-z]" "[A-Z]" | tr "-" "_")=1" # Assign variable to true.
@@ -181,7 +187,7 @@ source ./setrootcore.sh --silent "--grid=$grid"
 
 if test $nobuild -eq "0"; then
   if ! "$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc" compile; then
-    echo "Error occured while trying to compile RootCore packages." && return 1;
+    echo "Error occured while trying to compile RootCore packages." && test "$sourced" -eq 1 && return 1 || exit 1
   fi
 else
   echo "--no-build flag set, skipped building..."
