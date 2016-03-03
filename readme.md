@@ -1,7 +1,9 @@
 
 # RootCoreMacros package
 
-This package offers a series of shell macros and functions which make the basis for building and setting the environment for the packages written for the purpose of analysing and tuning the Ringer algorithm performance.
+This package is a non-official plugin for RootCore that offers a series of
+shell macros and functions which make easier for the user to build RootCore
+packages and make the environment setup.
 
 Table of Contents
 =================
