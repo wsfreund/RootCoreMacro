@@ -11,8 +11,10 @@ Table of Contents
   * [RootCoreMacros package](#rootcoremacros-package)
   * [Usage](#usage)
     * [setrootcore.sh](#setrootcoresh)
+      * [To do and known bugs:](#to-do-and-known-bugs)
     * [buildthis.sh](#buildthissh)
       * [Procedure for a clean build](#procedure-for-a-clean-build)
+    * [To do and known bugs](#to-do-and-known-bugs-1)
     * [setup_modules.sh](#setup_modulessh)
       * [Retrieving framework source codes for the first time](#retrieving-framework-source-codes-for-the-first-time)
       * [Updating the framework to the last stable release](#updating-the-framework-to-the-last-stable-release)
@@ -25,10 +27,6 @@ Table of Contents
 # Usage
 
 The available shell files are:
-
-```bash
-find . -name "*.sh"
-```
 
     ./buildthis.sh
     ./setrootcore.sh
@@ -64,7 +62,7 @@ Finally, the `--grid` flag is used for specifying that the environment is being 
 source $ROOTCOREBIN/../setrootcore.sh -h
 ```
 
-    Usage: bash [--silent] [--release=Base,2.3.22] [--no-env-setup]
+    Usage: setrootcore.sh [--silent] [--release=Base,2.3.22] [--no-env-setup]
                     [--grid]
     
     Set current shell to use this folder RootCore environment. This should be
@@ -84,25 +82,33 @@ source $ROOTCOREBIN/../setrootcore.sh -h
                           single-thread)
 
 
-To do and known bugs:
-- Add option to clean environment and unset every change in the shell environment.
-- Without CVMFS: if the user account is different from the CERN account, it will fail to download the svn package.
+### To do and known bugs:
 
+- Add option to clean environment by unsetting every change in the shell environment;
+- Without CVMFS: if the user account is different from the CERN account, it will fail to download the svn package;
+- Make it python managed.
 
 ## buildthis.sh
 
 When sourced, this script will compile the environment as if using `rc compile`, but also taking care of other environment details needed by the packages compilation and setup, as defining the environment variables needed by the framework besides the ones defined by RootCore.
 
-If you execute instead of sourcing the script, it will compile without any flaws, however you will need to run `./setrootcore.sh` to set the environment.
+If the script is executed instead of sourced, it will compile without any flaws, however you will need to run `./setrootcore.sh` to set the environment.
 
+*Important*: If you are using svn version of the RootCore, you will need to run the buildthis.sh twice. If you don't know what this means, just do this every time you want to build the program:
 
+```bash
+source buildthis.sh
+source buildthis.sh
+```
+
+It seems that the current RootCore versions are having trouble to update the Makefile.RootCore file before executing it, hence it is needed to run the first time to update the file and the second to correctly build the package. If, however, after executing a second time the same error is state, then there is a bug and it should be reported.
 
 
 ```bash
 source $ROOTCOREBIN/../buildthis.sh -h
 ```
 
-    Usage: bash [--clean|--veryclean|--distclean] [--no-build] [--cleanenv] [--grid]
+    Usage: buildthis.sh [--clean|--veryclean|--distclean] [--no-build] [--cleanenv] [--grid]
     
     Compile RootCore environment and install it. This should be sourced, otherwise
     it won't change your shell environment and you may have issues using RootCore.
@@ -146,6 +152,11 @@ Some cases where this may be needed:
 
 - Add or removal of package dependencies on `precompile.sh`;
 - Need to change the shell environment variables order. 
+
+## To do and known bugs
+
+- Make it python managed;
+- When using svn RootCore, it is needed to execute the script several times to have a successful build.
 
 ## setup_modules.sh
 
@@ -242,3 +253,16 @@ Defines the following variables:
 - PYTHON_NUMPY_PATH (if `--numpy-info` specified): the base path to the numpy package;
 - INCLUDE_NUMPY (if `--numpy-info` specified): Numpy include path to be passed to the C++ compilers.
 
+<script type="text/javascript">
+    show=true;
+    function toggle(){
+        if (show){
+            $('div.input').hide();
+        }else{
+            $('div.input').show();
+        }
+        show = !show
+    }
+$.getScript('https://kmahelona.github.io/ipython_notebook_goodies/ipython_notebook_toc.js')
+</script>
+<a href="javascript:toggle()" target="_self"></a>
