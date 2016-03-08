@@ -6,9 +6,25 @@ shell macros and functions. It makes easier for the user to build RootCore
 packages and to setup the RootCore environment automatically adding local project
 dependencies and executables to path.
 
+Table of Contents
+=================
 
-<h1 id="tocheading">Table of Contents</h1>
-<div id="toc"></div>
+  * [Ringer framework: RootCoreMacros package](#ringer-framework-rootcoremacros-package)
+  * [Usage](#usage)
+    * [setrootcore.sh](#setrootcoresh)
+      * [To do and known bugs:](#to-do-and-known-bugs)
+    * [buildthis.sh](#buildthissh)
+      * [Procedure for a clean build](#procedure-for-a-clean-build)
+      * [To do and known bugs](#to-do-and-known-bugs-1)
+    * [setup_modules.sh](#setup_modulessh)
+      * [Retrieving framework source codes for the first time](#retrieving-framework-source-codes-for-the-first-time)
+      * [Updating the framework to the last stable release](#updating-the-framework-to-the-last-stable-release)
+      * [Remark for developers](#remark-for-developers)
+  * [Information for developers](#information-for-developers)
+    * [base_env.sh](#base_envsh)
+    * [common_shell_fcns.sh](#common_shell_fcnssh)
+    * [retrieve_python_info.sh](#retrieve_python_infosh)
+
 
 # Usage
 
@@ -250,16 +266,3 @@ Defines the following variables:
 - PYTHON_NUMPY_PATH (if `--numpy-info` specified): the base path to the numpy package;
 - INCLUDE_NUMPY (if `--numpy-info` specified): Numpy include path to be passed to the C++ compilers.
 
-<script type="text/javascript">
-    show=true;
-    function toggle(){
-        if (show){
-            $('div.input').hide();
-        }else{
-            $('div.input').show();
-        }
-        show = !show
-    }
-$.getScript('https://kmahelona.github.io/ipython_notebook_goodies/ipython_notebook_toc.js')
-</script>
-<a href="javascript:toggle()" target="_self"></a>
