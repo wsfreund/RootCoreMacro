@@ -101,7 +101,6 @@ done
 
 git pull
 
-git submodule init
 moduleFile=$(mainmodule)/.gitmodules
 if test "$dev" -eq "1"; then
   sed -i.bak "s_\(\S*url = \)https://github.com/\(.*\)_\1git@github.com:\2_" $moduleFile
@@ -109,6 +108,7 @@ else
   sed -i.bak "s_\(\S*url = \)git@github.com:\(.*\)_\1https://github.com/\2_" $moduleFile
 fi
 
+git submodule init
 git submodule sync
 
 if test "$head" -eq "0"; then
