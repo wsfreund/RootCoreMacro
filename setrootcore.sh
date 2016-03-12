@@ -185,7 +185,6 @@ if test $grid -eq 1; then
   export GOTO_NUM_THREADS=1; # GotoBLAS2
   export MKL_NUM_THREADS=1; # Intel MKL
 else
-  export RCM_GRID_ENV=0;
   export OMP_NUM_THREADS=$ROOTCORE_NCPUS;
   export OPENBLAS_NUM_THREADS=$ROOTCORE_NCPUS; # openblas
   export GOTO_NUM_THREADS=$ROOTCORE_NCPUS; # GotoBLAS2

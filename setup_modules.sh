@@ -12,6 +12,10 @@ determined by the master module release.
                       your ssh git push rights. Of course, this assumes that
                       your git account has the rights to do so, otherwise it
                       will fail. 
+
+                      WARNING: If the command is run with --dev and afterwards
+                      it is run without it, the permission to upload commits to
+                      the remotes on the submodules will be removed.
    -H|--head          It will update to the submodules head instead of the used
                       commit versions stablished to be used by the packge.
 EOF
@@ -98,9 +102,11 @@ done
 git pull
 
 git submodule init
+moduleFile=$(mainmodule)/.gitmodules
 if test "$dev" -eq "1"; then
-  moduleFile=$(mainmodule)/.gitmodules
   sed -i.bak "s_\(\S*url = \)https://github.com/\(.*\)_\1git@github.com:\2_" $moduleFile
+else
+  sed -i.bak "s_\(\S*url = \)git@github.com:\(.*\)_\1https://github.com/\2_" $moduleFile
 fi
 
 git submodule sync
@@ -108,7 +114,7 @@ git submodule sync
 if test "$head" -eq "0"; then
   git submodule update --recursive
 else # head
-  if ! git pull --recurse-submodules
+  if ! git pull --recurse-submodules 2>/dev/null
   then
     git submodule foreach --recursive checkout master
     git submodule foreach --recursive git pull origin master
