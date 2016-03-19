@@ -114,11 +114,13 @@ git submodule sync
 if test "$head" -eq "0"; then
   git submodule update --recursive
 else # head
-  if ! git pull --recurse-submodules 2>/dev/null
-  then
-    git submodule foreach --recursive checkout master
-    git submodule foreach --recursive git pull origin master
-  fi
+  #if ! git pull --recurse-submodules 2>/dev/null
+  #then
+  #  git submodule foreach --recursive checkout master
+  #fi
+  git submodule foreach --recursive git pull origin master
+  git submodule foreach --recursive git checkout master
+  git submodule foreach --recursive git pull
 fi
 
 true
