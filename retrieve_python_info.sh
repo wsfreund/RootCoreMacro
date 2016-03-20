@@ -66,6 +66,7 @@ do
   fi
 done
 PYTHON_INCLUDE_PATH=""
+PYTHON_LIBRARY_PATH=""
 for candidate in $PYTHON_INCLUDE_CANDIDATES
 do
   if test "`basename $candidate`" = $PYTHON_LIB_VERSION
@@ -73,6 +74,10 @@ do
     if test -e $candidate/import.h -o -e $candidate/pyconfig.h
     then
       PYTHON_INCLUDE_PATH="$PYTHON_INCLUDE_PATH $include_system_marker$candidate"
+      base_folder=${candidate%include\/*}
+      if test -e $base_folder/lib; then
+        PYTHON_LIBRARY_PATH="$PYTHON_LIBRARY_PATH -L$base_folder/lib"
+      fi
     fi
   fi
 done
@@ -99,5 +104,6 @@ if test "$NUMPY_INFO" -eq "1"; then
       fi
     fi
   fi
-  true
 fi
+
+true
