@@ -31,7 +31,7 @@ silent=0
 grid=0
 release='Base,2.3.22'
 NO_ENV_SETUP=0
-account=whoami
+account=$(whoami)
 
 while :; do
   case $1 in
@@ -161,7 +161,7 @@ else
       --config-option config:tunnels:ssh="ssh -o PasswordAuthentication=no -o NumberOfPasswordPrompts=0" \
       "svn+ssh://${account}@svn.cern.ch/reps/atlasoff/PhysicsAnalysis/D3PDTools/RootCore/tags/$(svn ls \
         --config-option config:tunnels:ssh="ssh -o PasswordAuthentication=no -o NumberOfPasswordPrompts=0" \
-        svn+ssh://@{account}@svn.cern.ch/reps/atlasoff/PhysicsAnalysis/D3PDTools/RootCore/tags 2> /dev/null | tail -n 1)" RootCore \
+        "svn+ssh://${account}@svn.cern.ch/reps/atlasoff/PhysicsAnalysis/D3PDTools/RootCore/tags" 2> /dev/null | tail -n 1)" RootCore \
         2> /dev/null
   then
       cd RootCore
