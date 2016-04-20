@@ -16,6 +16,11 @@ no CVMFS access.
     -r|--release      The RootCore release it should use. This only takes
                       effect if used with CVMFS access. 
    --no-env-setup     Do not source new environment files.
+   --acount           The CERN account name to download the last RootCore
+                      release. When not informed, it will use the current 
+                      account of the system.
+                      If it fails to download with the provided account, it 
+                      will use a git copy of the RootCore.
     --grid            Flag that environment should be set for the grid (set
                       single-thread)
 EOF
@@ -26,6 +31,7 @@ silent=0
 grid=0
 release='Base,2.3.22'
 NO_ENV_SETUP=0
+account=whoami
 
 while :; do
   case $1 in
@@ -93,6 +99,23 @@ while :; do
       echo 'ERROR: "--grid" requires a non-empty option argument.\n' >&2
       return 1
       ;;
+    --account)
+      if [ ${2#--} != $2 ]; then
+        echo 'ERROR: "--account" requires a non-empty option argument.\n' >&2
+        return 1
+      else
+        account=$2
+        shift 2
+        continue
+      fi
+      ;;
+    --account=?*)
+      acccount=${1#*=}
+      ;;
+    --account=)   # Handle the case of an empty --account=
+      echo 'ERROR: "--account" requires a non-empty option argument.\n' >&2
+      return 1
+      ;;
     --)              # End of all options.
       shift
       break
@@ -134,10 +157,23 @@ else
   unset ATLAS_LOCAL_ROOT_BASE
   if test \! -e RootCore
   then
-    svn co "svn+ssh://svn.cern.ch/reps/atlasoff/PhysicsAnalysis/D3PDTools/RootCore/tags/`svn ls svn+ssh://svn.cern.ch/reps/atlasoff/PhysicsAnalysis/D3PDTools/RootCore/tags | tail -n 1`" RootCore
-    cd RootCore
-    svn upgrade
-    cd - > /dev/null
+    if svn co -q \
+      --config-option config:tunnels:ssh="ssh -o PasswordAuthentication=no -o NumberOfPasswordPrompts=0" \
+      "svn+ssh://${account}@svn.cern.ch/reps/atlasoff/PhysicsAnalysis/D3PDTools/RootCore/tags/$(svn ls \
+        --config-option config:tunnels:ssh="ssh -o PasswordAuthentication=no -o NumberOfPasswordPrompts=0" \
+        svn+ssh://@{account}@svn.cern.ch/reps/atlasoff/PhysicsAnalysis/D3PDTools/RootCore/tags 2> /dev/null | tail -n 1)" RootCore \
+        2> /dev/null
+  then
+      cd RootCore
+      svn upgrade 2> /dev/null
+      cd - > /dev/null
+    else
+      git clone -q https://github.com/wsfreund/RCMirror.git tmpDir
+      mv tmpDir/RootCore.tgz .
+      rm -rf tmpDir 
+      tar xfz RootCore.tgz
+      rm RootCore.tgz
+    fi
   else 
     test \! -e RootCore && echo "Couldn't find retrieve RootCore to compile in standalone." && return 1
   fi
