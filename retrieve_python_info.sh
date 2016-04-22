@@ -50,8 +50,15 @@ done
 source "$ROOTCOREBIN/../RootCoreMacros/base_env.sh" || { echo "Couldn't load base shell environment." && exit 1; }
 
 PYTHON_EXEC_PATH=`pyenv whence --path python 2>/dev/null || which python`
-PYTHON_EXEC_PATH=`readlink -f "$PYTHON_EXEC_PATH"`
-PYTHON_INCLUDE_CANDIDATES=${PYTHON_EXEC_PATH//bin\/python*/include\/}
+if ! TRUE_PYTHON_EXEC_PATH=$(readlink -f "$PYTHON_EXEC_PATH" 2>/dev/null); then
+  if type realpath > /dev/null; then
+    TRUE_PYTHON_EXEC_PATH=$(realpath "$PYTHON_EXEC_PATH" 2>/dev/null)
+  else
+    echo "WARN: Couldn't retrieve python true path. Continuing assuming it is not a link." >&2
+    TRUE_PYTHON_EXEC_PATH=$PYTHON_EXEC_PATH
+  fi
+fi
+PYTHON_INCLUDE_CANDIDATES=${TRUE_PYTHON_EXEC_PATH//bin\/python*/include\/}
 PYTHON_INCLUDE_CANDIDATES=`find "$PYTHON_INCLUDE_CANDIDATES" -name "python?.?" -type d` # pick only last result
 PYTHON_VERSION_NUM=0
 for candidate in $PYTHON_INCLUDE_CANDIDATES
