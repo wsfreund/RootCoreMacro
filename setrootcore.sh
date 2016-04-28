@@ -121,7 +121,7 @@ while :; do
       break
       ;;
     -?*)
-      echo 'WARN: Unknown option (ignored): %s\n' "$1" >&2
+      printf 'WARN: Unknown option (ignored): %s\n' "$1" >&2
       ;;
     *)               # Default case: If no more options then break out of the loop.
       break

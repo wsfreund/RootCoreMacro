@@ -88,6 +88,8 @@ do
     fi
   fi
 done
+PYTHON_INCLUDE_PATH=$(echo $PYTHON_INCLUDE_PATH | sed -e 's/^[ \t]*//')
+PYTHON_LIBRARY_PATH=$(echo $PYTHON_LIBRARY_PATH | sed -e 's/^[ \t]*//')
 
 if test "$NUMPY_INFO" -eq "1"; then
   NUMPY_LCG=0
