@@ -60,3 +60,14 @@ add_to_env()
   add_path=$2
   test $(echo ":$(eval echo \$$var):" | grep -q ":$add_path:"; echo $?) -ne 0 && export "$var=$add_path:$(eval echo \$$var)" || true
 }
+
+check_openmp()
+{
+  file=$(mktemp)
+  echo "int main(){return 0;}"> $file
+  output=$(mktemp)
+  $CXX -fopenmp -c $file -o $output > /dev/null 2> /dev/null; ret=$?
+  test -e $file && rm $file
+  test -e $output && rm $output
+  return $ret
+}

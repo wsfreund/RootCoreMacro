@@ -2,7 +2,9 @@ MAKEFILE="$PWD/Makefile.RootCore"
 BASE_NEW_ENV_FILE="new_env_file.sh"
 NEW_ENV_FILE="$PWD/$BASE_NEW_ENV_FILE"
 
-arch=`root-config --arch`
+arch=$(root-config --arch)
+CXX=$(root-config --cxx)
+
 if test "$arch" = "macosx64"
 then
   include_marker="-I"
