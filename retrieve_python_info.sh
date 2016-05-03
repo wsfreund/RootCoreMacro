@@ -72,22 +72,31 @@ do
     vNUM=$candidateVNUM
   fi
 done
+
 PYTHON_INCLUDE_PATH=""
 PYTHON_LIBRARY_PATH=""
 for candidate in $PYTHON_INCLUDE_CANDIDATES
 do
   if test "`basename $candidate`" = $PYTHON_LIB_VERSION
   then
-    if test -e $candidate/import.h -o -e $candidate/pyconfig.h
+    if test -e "$candidate/Python.h" -a -e "$candidate/pyconfig.h"
     then
-      PYTHON_INCLUDE_PATH="$PYTHON_INCLUDE_PATH $include_system_marker$candidate"
+      PYTHON_INCLUDE_PATH="$include_system_marker$candidate"
       base_folder=${candidate%include\/*}
       if test -e $base_folder/lib; then
-        PYTHON_LIBRARY_PATH="$PYTHON_LIBRARY_PATH -L$base_folder/lib"
+        PYTHON_LIBRARY_PATH="-L$base_folder/lib"
+        break
+      else
+        echo "Found include path, but couldn't find library path."
       fi
     fi
   fi
 done
+
+if test -z "$PYTHON_INCLUDE_PATH" -o -z "$PYTHON_LIBRARY_PATH"; then
+  echo "ERROR: Coulnd't find a valid include/library path for the candidates: $PYTHON_INCLUDE_CANDIDATES" >&2 && exit 1;
+fi
+
 PYTHON_INCLUDE_PATH=$(echo $PYTHON_INCLUDE_PATH | sed -e 's/^[ \t]*//')
 PYTHON_LIBRARY_PATH=$(echo $PYTHON_LIBRARY_PATH | sed -e 's/^[ \t]*//')
 
