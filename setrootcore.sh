@@ -164,9 +164,9 @@ else
         "svn+ssh://${account}@svn.cern.ch/reps/atlasoff/PhysicsAnalysis/D3PDTools/RootCore/tags" 2> /dev/null | tail -n 1)" RootCore \
         2> /dev/null
   then
-      cd RootCore
+      pushd RootCore > /dev/null
       svn upgrade 2> /dev/null
-      cd - > /dev/null
+      popd > /dev/null
     else
       git clone -q https://github.com/wsfreund/RCMirror.git tmpDir
       mv tmpDir/RootCore.tgz .
@@ -181,9 +181,9 @@ else
   then 
     if test "x${ROOTCOREBIN}" = "x"
     then
-      cd RootCore
+      pushd RootCore > /dev/null
       . scripts/setup.sh
-      cd ..
+      popd > /dev/null
     else
       test "$silent" -eq 0 && echo "Environment already set, did not set it again!"
     fi

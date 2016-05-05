@@ -186,6 +186,15 @@ fi
 source ./setrootcore.sh --silent "--grid=$grid"
 
 if test $nobuild -eq "0"; then
+  # Pre-compile
+  echo "running pre-compile..."
+  for file in `find -L "$ROOTCOREBIN/.." -maxdepth 3 -mindepth 3 -path "*/cmt/*" -name "precompile.RootCore" `
+  do
+    # TODO: This may give errors due to pre-compilation order, should it be muted
+    # or sourced in the correct order?
+    test -x "$file" && pushd $(dirname $file) > /dev/null && $file;
+    popd > /dev/null
+  done
   if ! "$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc" compile; then
     echo "Error occured while trying to compile RootCore packages." && test "$sourced" -eq 1 && return 1 || exit 1
   fi
