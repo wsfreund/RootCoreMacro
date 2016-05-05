@@ -63,13 +63,11 @@ add_to_env()
 
 check_openmp()
 {
-  set -x
   file=$(mktemp)
   echo "int main(){return 0;}"> $file
   output=$(mktemp)
   $CXX -fopenmp $file -o $output > /dev/null 2> /dev/null; ret=$?
   test -e $file && rm $file
   test -e $output && rm $output
-  set +x
   return $ret
 }
