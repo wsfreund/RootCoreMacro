@@ -172,6 +172,9 @@ else
       mv tmpDir/RootCore.tgz .
       rm -rf tmpDir 
       tar xfz RootCore.tgz
+      pushd RootCore > /dev/null
+      svn upgrade 2> /dev/null
+      popd > /dev/null
       rm RootCore.tgz
     fi
   else 
