@@ -1,6 +1,6 @@
 show_help() {
 cat << EOF
-Usage: ${0##*/} [--numpy-path]
+Usage: ${0##*/} [--numpy-info]
 
 Retrieve python information.
 

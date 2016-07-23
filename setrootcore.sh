@@ -29,7 +29,7 @@ EOF
 # Default values
 silent=0
 grid=0
-release='Base,2.3.22'
+release='Base,2.4.16'
 NO_ENV_SETUP=0
 account=$(whoami)
 
