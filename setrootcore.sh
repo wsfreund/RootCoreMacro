@@ -239,6 +239,7 @@ else
   export MKL_NUM_THREADS=$ROOTCORE_NCPUS; # Intel MKL
 fi
 
-popd > /dev/null
+# Return to original dir
+popd > /dev/null 2> /dev/null
 
 true
