@@ -145,6 +145,8 @@ else
 fi
 test $(basename "$script_place") = "RootCoreMacros" && script_place="$(dirname $script_place)"
 
+# FIXME: This messes up with dirs history by removing $script_place dir if it
+# was in the history.
 dopop=false
 test "$PWD" != "$script_place" && pushd $script_place > /dev/null && dopop=true
 
