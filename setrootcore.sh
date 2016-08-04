@@ -144,7 +144,9 @@ else
   printf "ERROR: Unsupported shell." >&2 && return 1;
 fi
 test $(basename "$script_place") = "RootCoreMacros" && script_place="$(dirname $script_place)"
-pushd $script_place > /dev/null
+
+dopop=false
+test "$PWD" != "$script_place" && pushd $script_place > /dev/null && dopop=true
 
 if test -e "$ATLAS_LOCAL_ROOT_BASE"
 then
@@ -187,7 +189,8 @@ else
       rm RootCore.tgz
     fi
   else 
-    test \! -e RootCore && echo "Couldn't find retrieve RootCore to compile in standalone." && popd > /dev/null && return 1
+    test \! -e RootCore && echo "Couldn't find retrieve RootCore to compile in standalone." && \
+      { $dopop && popd > /dev/null || true; } && return 1
   fi
   if test -e RootCore
   then 
@@ -204,12 +207,14 @@ else
       echo "Couldn't find_packages!"
     fi
   else
-    test "x${ROOTCOREBIN}" = "x" && echo "Cannot find RootCore dir. Something went wrong during the setup" && popd > /dev/null && return 1
+    test "x${ROOTCOREBIN}" = "x" && echo "Cannot find RootCore dir. Something went wrong during the setup" && \
+      { $dopop && popd > /dev/null || true; } && return 1
   fi
 fi
 
 # Check if everything was ok and load default environment.
-test "x$ROOTCOREBIN" = "x" && echo "FAILED: For some reason ROOTCOREBIN is not set. Skipping..." && popd > /dev/null && return 1
+test "x$ROOTCOREBIN" = "x" && echo "FAILED: For some reason ROOTCOREBIN is not set. Skipping..." && \
+  { $dopop && popd > /dev/null || true; } && return 1
 
 source "$ROOTCOREBIN/../RootCoreMacros/base_env.sh"
 
@@ -240,6 +245,6 @@ else
 fi
 
 # Return to original dir
-popd > /dev/null 2> /dev/null
+$dopop && popd > /dev/null
 
 true
