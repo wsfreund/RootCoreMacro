@@ -135,12 +135,21 @@ then
   export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 fi
 
+# Get sourced script absolute path
+if [ -n "`$SHELL -c 'echo $ZSH_VERSION'`" ]; then
+  script_place="$(dirname $(readlink -f "$0"))"
+elif [ -n "`$SHELL -c 'echo $BASH_VERSION'`" ]; then
+  script_place=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+else
+  printf "ERROR: Unsupported shell." >&2 && return 1;
+fi
+test $(basename "$script_place") = "RootCoreMacros" && script_place="$(dirname $script_place)"
+pushd $script_place > /dev/null
+
 if test -e "$ATLAS_LOCAL_ROOT_BASE"
 then
-  source "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" > /dev/null
   # cvmfs exists
-  # Set to a stable release
-  script_place="$(readlink -f $(dirname "$0"))"
+  source "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" > /dev/null
   baseDir=$(basename "$ROOTCOREBIN")
   # We only set the environment if it wasn't set to the desired release:
   if test "x${ROOTCOREBIN}" = "x" -o "$ROOTCOREBIN" != "$script_place/$baseDir" -o "${release/,/ }" != "$(source $ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh -M)"
@@ -178,7 +187,7 @@ else
       rm RootCore.tgz
     fi
   else 
-    test \! -e RootCore && echo "Couldn't find retrieve RootCore to compile in standalone." && return 1
+    test \! -e RootCore && echo "Couldn't find retrieve RootCore to compile in standalone." && popd > /dev/null && return 1
   fi
   if test -e RootCore
   then 
@@ -195,12 +204,12 @@ else
       echo "Couldn't find_packages!"
     fi
   else
-    test "x${ROOTCOREBIN}" = "x" && echo "Cannot find RootCore dir. Something went wrong during the setup" && return 1
+    test "x${ROOTCOREBIN}" = "x" && echo "Cannot find RootCore dir. Something went wrong during the setup" && popd > /dev/null && return 1
   fi
 fi
 
 # Check if everything was ok and load default environment.
-test "x$ROOTCOREBIN" = "x" && echo "FAILED: For some reason ROOTCOREBIN is not set. Skipping..." && return 1
+test "x$ROOTCOREBIN" = "x" && echo "FAILED: For some reason ROOTCOREBIN is not set. Skipping..." && popd > /dev/null && return 1
 
 source "$ROOTCOREBIN/../RootCoreMacros/base_env.sh"
 
@@ -229,5 +238,7 @@ else
   export GOTO_NUM_THREADS=$ROOTCORE_NCPUS; # GotoBLAS2
   export MKL_NUM_THREADS=$ROOTCORE_NCPUS; # Intel MKL
 fi
+
+popd > /dev/null
 
 true
