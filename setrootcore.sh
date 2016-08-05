@@ -136,10 +136,16 @@ then
 fi
 
 # Get sourced script absolute path
-if [ -n "`$SHELL -c 'echo $ZSH_VERSION'`" ]; then
+if test -n "`$SHELL -c 'echo $ZSH_VERSION'`"; then
   script_place="$(dirname $(readlink -f "$0"))"
-elif [ -n "`$SHELL -c 'echo $BASH_VERSION'`" ]; then
+elif test -n "`$SHELL -c 'echo $BASH_VERSION'`"; then
   script_place=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+elif test "$(basename "$SHELL")" = "zsh"; then
+  script_place="$(dirname $(readlink -f "$0"))"
+elif test "$(basename "$SHELL")" = "bash"; then
+  script_place=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+elif test "$grid" -eq "1"; then
+  script_place=$PWD
 else
   printf "ERROR: Unsupported shell." >&2 && return 1;
 fi
