@@ -155,15 +155,23 @@ then
 fi
 
 # Get sourced script absolute path
-if [ -n "`$SHELL -c 'echo $ZSH_VERSION'`" ]; then
+if test -n "`$SHELL -c 'echo $ZSH_VERSION'`"; then
   script_place="$(dirname $(readlink -f "$0"))"
-elif [ -n "`$SHELL -c 'echo $BASH_VERSION'`" ]; then
+elif test -n "`$SHELL -c 'echo $BASH_VERSION'`"; then
   script_place=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+elif test "$(basename "$SHELL")" = "zsh"; then
+  script_place="$(dirname $(readlink -f "$0"))"
+elif test "$(basename "$SHELL")" = "bash"; then
+  script_place=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+elif test "$grid" -eq "1"; then
+  script_place=$PWD
 else
   printf "ERROR: Unsupported shell." >&2 && return 1;
 fi
 test $(basename "$script_place") = "RootCoreMacros" && script_place="$(dirname $script_place)"
 
+# FIXME: This messes up with dirs history by removing $script_place dir if it
+# was in the history.
 dopop=false
 test "$PWD" != "$script_place" && pushd $script_place > /dev/null && dopop=true
 

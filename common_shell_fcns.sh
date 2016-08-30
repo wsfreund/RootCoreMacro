@@ -64,10 +64,11 @@ add_to_env()
 check_openmp()
 {
   file=$(mktemp)
-  echo "int main(){return 0;}"> $file
+  echo "int main(){return 0;}" > "${file}.cxx"
   output=$(mktemp)
-  $CXX -fopenmp $file -o $output > /dev/null 2> /dev/null; ret=$?
+  $CXX -fopenmp "${file}.cxx" -o $output; ret=$?
   test -e $file && rm $file
   test -e $output && rm $output
+  rm "${file}.cxx"
   return $ret
 }
