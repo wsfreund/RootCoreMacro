@@ -23,6 +23,8 @@ no CVMFS access.
                       will use a git copy of the RootCore.
     --grid            Flag that environment should be set for the grid (set
                       single-thread)
+    --no-cvmfs        Ignore cvmfs if it is available and install it without
+                      AnalysisBase.
 EOF
 }
 
@@ -31,6 +33,7 @@ silent=0
 grid=0
 release='Base,2.3.22'
 NO_ENV_SETUP=0
+NO_CVMFS=0
 account=$(whoami)
 
 while :; do
@@ -81,6 +84,22 @@ while :; do
       ;;
     --no-env-setup=)   # Handle the case of an empty --no-env-setup=
       echo 'ERROR: "--no-env-setup" requires a non-empty option argument.\n' >&2
+      return 1
+      ;;
+    --no-cvmfs)
+      if [ ${2#--} != $2 ]; then
+        NO_CVMFS=1
+      else
+        NO_CVMFS=$2
+        shift 2
+        continue
+      fi
+      ;;
+    --no-cvmfs=?*)
+      NO_CVMFS=${1#*=} # Delete everything up to "=" and assign the remainder.
+      ;;
+    --no-cvmfs=)       # Handle the case of an empty --no-cvmfs=
+      echo 'ERROR: "--no-cvmfs" requires a non-empty option argument.\n' >&2
       return 1
       ;;
     --grid)
@@ -148,7 +167,7 @@ test $(basename "$script_place") = "RootCoreMacros" && script_place="$(dirname $
 dopop=false
 test "$PWD" != "$script_place" && pushd $script_place > /dev/null && dopop=true
 
-if test -e "$ATLAS_LOCAL_ROOT_BASE"
+if test -e "$ATLAS_LOCAL_ROOT_BASE" -a \! \( "$NO_CVMFS" != "0" \)
 then
   # cvmfs exists
   source "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" > /dev/null

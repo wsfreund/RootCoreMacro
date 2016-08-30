@@ -23,6 +23,8 @@ it won't change your shell environment and you may have issues using RootCore.
     --with-{var}   Set environment variable \${VAR} to true. This only makes effect
                    if some dependent package checks for this variable.
     --grid         Flag that compilation is for the grid environment. 
+    --no-cvmfs     Ignore cvmfs if it is available and install it without
+                   AnalysisBase.
 EOF
 }
 
@@ -39,6 +41,7 @@ cleanenv=0
 veryclean=0
 distclean=0
 nobuild=0
+NO_CVMFS=0
 
 while :; do
   case $1 in
@@ -126,6 +129,22 @@ while :; do
       echo 'ERROR: "--no-build" requires a non-empty option argument.\n' >&2
       test "$sourced" -eq 1 && return 1 || exit 1
       ;;
+    --no-cvmfs)
+      if [ ${2#--} != $2 ]; then
+        NO_CVMFS=1
+      else
+        NO_CVMFS=$2
+        shift 2
+        continue
+      fi
+      ;;
+    --no-cvmfs=?*)
+      NO_CVMFS=${1#*=} # Delete everything up to "=" and assign the remainder.
+      ;;
+    --no-cvmfs=)       # Handle the case of an empty --no-cvmfs=
+      echo 'ERROR: "--no-cvmfs" requires a non-empty option argument.\n' >&2
+      return 1
+      ;;
     --grid)
       if [ ${2#--} != $2 ]; then
         grid=1
@@ -163,7 +182,7 @@ test $veryclean -eq 1 && clean=1;
 test $distclean -eq 1 && clean=1 && veryclean=1;
 
 # Set RootCore environment
-source ./setrootcore.sh --silent --no-env-setup "--grid=$grid"
+source ./setrootcore.sh --silent --no-env-setup "--grid=$grid" "--no-cvmfs=$NO_CVMFS"
 
 # Compile
 test $clean -eq "1" && "$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc" clean
@@ -183,7 +202,7 @@ if test $distclean -eq "1"; then
 fi
 
 # Now add the new environment files
-source ./setrootcore.sh --silent "--grid=$grid"
+source ./setrootcore.sh --silent "--grid=$grid" "--no-cvmfs=$NO_CVMFS"
 
 if test $nobuild -eq "0"; then
   # Pre-compile
@@ -203,6 +222,6 @@ else
 fi
 
 # Finally, update user environment to the one needed by the installation
-source ./setrootcore.sh --silent "--grid=$grid"
+source ./setrootcore.sh --silent "--grid=$grid" "--no-cvmfs=$NO_CVMFS"
 
 true
