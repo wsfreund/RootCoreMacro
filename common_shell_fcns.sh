@@ -63,12 +63,17 @@ add_to_env()
 
 check_openmp()
 {
-  file=$(mktemp)
-  echo "int main(){return 0;}" > "${file}.cxx"
-  output=$(mktemp)
-  $CXX -fopenmp "${file}.cxx" -o $output; ret=$?
-  test -e $file && rm $file
-  test -e $output && rm $output
-  rm "${file}.cxx"
-  return $ret
+  if test "$(root-config --cc)" != "clang"; then
+    file=$(mktemp)
+    echo "int main(){return 0;}" > "${file}.cxx"
+    output=$(mktemp)
+    $CXX -fopenmp "${file}.cxx" -o $output; ret=$?
+    test -e $file && rm $file
+    test -e $output && rm $output
+    rm "${file}.cxx"
+    return $ret
+  else
+    echo "WARN: root was compiled with clang, no multi-processing available."
+    return 1;
+  fi
 }
