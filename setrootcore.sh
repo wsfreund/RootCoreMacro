@@ -1,6 +1,6 @@
 show_help() {
 cat << EOF
-Usage: ${0##*/} [--silent] [--release=Base,2.3.22] [--no-env-setup]
+Usage: ${0##*/} [--silent] [--release=Base,2.4.18] [--no-env-setup]
                 [--grid]
 
 Set current shell to use this folder RootCore environment. This should be
@@ -31,7 +31,7 @@ EOF
 # Default values
 silent=0
 grid=0
-release='Base,2.3.22'
+release='Base,2.3.52'
 NO_ENV_SETUP=0
 NO_CVMFS=0
 account=$(whoami)
