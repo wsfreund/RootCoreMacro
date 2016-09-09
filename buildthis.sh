@@ -211,8 +211,10 @@ if test $nobuild -eq "0"; then
   do
     # TODO: This may give errors due to pre-compilation order, should it be muted
     # or sourced in the correct order?
-    test -x "$file" && pushd $(dirname $file) > /dev/null && $file;
-    popd > /dev/null
+    if test -x "$file"; then
+      pushd $(dirname $file) > /dev/null && $file && source "$(dirname $file)/${BASE_NEW_ENV_FILE}";
+      popd > /dev/null
+    fi
   done
   if ! "$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc" compile; then
     echo "Error occured while trying to compile RootCore packages." && test "$sourced" -eq 1 && return 1 || exit 1
