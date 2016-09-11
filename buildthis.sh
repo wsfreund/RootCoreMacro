@@ -212,7 +212,7 @@ if test $nobuild -eq "0"; then
     # TODO: This may give errors due to pre-compilation order, should it be muted
     # or sourced in the correct order?
     if test -x "$file"; then
-      pushd $(dirname $file) > /dev/null && $file && source "$(dirname $file)/${BASE_NEW_ENV_FILE}";
+      pushd $(dirname $file) > /dev/null && $file && test -e "$(dirname $file)/${BASE_NEW_ENV_FILE}" && source "$(dirname $file)/${BASE_NEW_ENV_FILE}";
       popd > /dev/null
     fi
   done
