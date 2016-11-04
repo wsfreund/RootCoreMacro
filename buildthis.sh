@@ -42,12 +42,25 @@ veryclean=0
 distclean=0
 nobuild=0
 NO_CVMFS=0
+release=
 
 while :; do
   case $1 in
     -h|-\?|--help)   # Call a "show_help" function to display a synopsis, then exit.
       show_help
       test "$sourced" -eq 1 && return || exit
+      ;;
+    -r|--release)
+      release=$2
+      shift 2
+      continue
+      ;;
+    -r=?*|--release=?*)
+      release=${1#*=} # Delete everything up to "=" and assign the remainder.
+      ;;
+    -r=|--release=)   # Handle the case of an empty --release=
+      echo 'ERROR: "--release" requires a non-empty option argument.\n' >&2
+      return 1
       ;;
     --clean)
       if [ ${2#--} != $2 ]; then
@@ -181,8 +194,9 @@ done
 test $veryclean -eq 1 && clean=1;
 test $distclean -eq 1 && clean=1 && veryclean=1;
 
+test -n "$release" && srelease="--release=$release"
 # Set RootCore environment
-source ./setrootcore.sh --silent --no-env-setup "--grid=$grid" "--no-cvmfs=$NO_CVMFS"
+source ./setrootcore.sh --silent --no-env-setup "--grid=$grid" "--no-cvmfs=$NO_CVMFS" "$srelease"
 
 # Compile
 test $clean -eq "1" && "$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc" clean
