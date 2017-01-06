@@ -1,6 +1,6 @@
 show_help() {
 cat << EOF
-Usage: ${0##*/} [--silent] [--release=Base,2.4.18] [--no-env-setup]
+Usage: ${0##*/} [--silent] [--release=Base,2.4.23] [--no-env-setup]
                 [--grid]
 
 Set current shell to use this folder RootCore environment. This should be
@@ -31,7 +31,7 @@ EOF
 # Default values
 silent=0
 grid=0
-release='Base,2.3.52'
+release='Base,2.4.23'
 NO_ENV_SETUP=0
 NO_CVMFS=0
 account=$(whoami)
@@ -181,7 +181,7 @@ then
   source "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" > /dev/null
   baseDir=$(basename "$ROOTCOREBIN")
   # We only set the environment if it wasn't set to the desired release:
-  if test "x${ROOTCOREBIN}" = "x" -o "$ROOTCOREBIN" != "$script_place/$baseDir" -o "${release/,/ }" != "$(source $ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh -M)"
+  if test "x${ROOTCOREBIN}" = "x" -o "$ROOTCOREBIN" != "$script_place/$baseDir" -o "${release/,/ }" != "$(source $ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh -M -q)"
   then
     # Unset previous rootcore
     test "x${ROOTCOREBIN}" != "x" && source "$ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh" -u -q
