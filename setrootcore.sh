@@ -269,6 +269,13 @@ else
   export OPENBLAS_NUM_THREADS=$ROOTCORE_NCPUS; # openblas
   export GOTO_NUM_THREADS=$ROOTCORE_NCPUS; # GotoBLAS2
   export MKL_NUM_THREADS=$ROOTCORE_NCPUS; # Intel MKL
+  if test "x$THEANO_FLAGS" = "x"; then
+    if test -f "/sw/apps/intel16/compilers_and_libraries_2016.4.258/linux/bin/intel64/icpc"; then
+      export THEANO_FLAGS="openmp=True,cxx=/sw/apps/intel16/compilers_and_libraries_2016.4.258/linux/bin/intel64/icpc,gcc.cxxflags='-O2 -parallel'"
+    else
+      export THEANO_FLAGS="openmp=True"
+    fi
+  fi
 fi
 
 # Return to original dir
