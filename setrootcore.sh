@@ -21,8 +21,8 @@ no CVMFS access.
                       account of the system.
                       If it fails to download with the provided account, it 
                       will use a git copy of the RootCore.
-    --grid            Flag that environment should be set for the grid (set
-                      single-thread)
+    --grid            Flag that environment should be set for the grid
+    --ncpus           Flag the number of cpus to use
     --no-cvmfs        Ignore cvmfs if it is available and install it without
                       AnalysisBase.
 EOF
@@ -34,6 +34,7 @@ grid=0
 release='Base,2.4.23'
 NO_ENV_SETUP=0
 NO_CVMFS=0
+RCM_NCPUS=""
 account=$(whoami)
 
 while :; do
@@ -104,18 +105,35 @@ while :; do
       ;;
     --grid)
       if [ ${2#--} != $2 ]; then
-        grid=1
+        RCM_GRID_ENV=1
       else
-        grid=$2
+        RCM_GRID_ENV=$2
         shift 2
         continue
       fi
       ;;
     --grid=?*)
-      grid=${1#*=} # Delete everything up to "=" and assign the remainder.
+      RCM_GRID_ENV=${1#*=} # Delete everything up to "=" and assign the remainder.
       ;;
     --grid=)   # Handle the case of an empty --grid=
       echo 'ERROR: "--grid" requires a non-empty option argument.\n' >&2
+      return 1
+      ;;
+    --ncpus)
+      if [ ${2#--} != $2 ]; then
+        echo 'ERROR: "--ncpus" requires a non-empty option argument.\n' >&2
+        return 1
+      else
+        RCM_NCPUS=$2
+        shift 2
+        continue
+      fi
+      ;;
+    --ncpus=?*)
+      RCM_NCPUS=${1#*=} # Delete everything up to "=" and assign the remainder.
+      ;;
+    --ncpus=)   # Handle the case of an empty --grid=
+      echo 'ERROR: "--ncpus" requires a non-empty option argument.\n' >&2
       return 1
       ;;
     --account)
@@ -253,30 +271,41 @@ if test $NO_ENV_SETUP -eq "0"; then
   done
 fi
 
+export RCM_GRID_ENV
+
 # Override number of cores if in grid environment:
-export RCM_GRID_ENV=0
-if test $grid -eq 1; then 
-  export RCM_GRID_ENV=1; # Tell packages that we are on grid
-  export ROOTCORE_NCPUS=1; # RootCore, just to prevent mistakes
-  # We set all variables that armadillo may use as an library accelerator:
-  # TODO Maybe we want to tell armadillo to link to single-thread library
-  export OMP_NUM_THREADS=1; # AMD ACML (openMP) # works with gpu
-  export OPENBLAS_NUM_THREADS=1; # openblas
-  export GOTO_NUM_THREADS=1; # GotoBLAS2
-  export MKL_NUM_THREADS=1; # Intel MKL
-else
-  export OMP_NUM_THREADS=$ROOTCORE_NCPUS;
-  export OPENBLAS_NUM_THREADS=$ROOTCORE_NCPUS; # openblas
-  export GOTO_NUM_THREADS=$ROOTCORE_NCPUS; # GotoBLAS2
-  export MKL_NUM_THREADS=$ROOTCORE_NCPUS; # Intel MKL
-  if test "x$THEANO_FLAGS" = "x"; then
-    if test -f "/sw/apps/intel16/compilers_and_libraries_2016.4.258/linux/bin/intel64/icpc"; then
-      export THEANO_FLAGS="openmp=True,cxx=/sw/apps/intel16/compilers_and_libraries_2016.4.258/linux/bin/intel64/icpc,gcc.cxxflags='-O2 -parallel'"
-    else
-      export THEANO_FLAGS="openmp=True"
-    fi
+if test "x$RCM_NCPUS" = "x"; then
+  export RCM_NCPUS=$ROOTCORE_NCPUS
+fi
+
+# We set all variables that may be used as an library accelerator:
+export OMP_NUM_THREADS=$RCM_NCPUS;
+export OPENBLAS_NUM_THREADS=$RCM_NCPUS; # openblas
+export GOTO_NUM_THREADS=$RCM_NCPUS; # GotoBLAS2
+export MKL_NUM_THREADS=$RCM_NCPUS; # Intel MKL
+export ROOTCORE_NCPUS=$RCM_NCPUS; # RootCore, just to prevent mistakes
+
+if test "$RCM_GRID_ENV" -eq "1"; then 
+  RCM_GRID_EXTRA="ssh service1 "
+fi
+
+if test -f "/sw/apps/intel16/compilers_and_libraries_2016.4.258/linux/bin/intel64/icpc"; then
+  if module load intel 2> /dev/null; then
+    RCM_CXX="${RCM_GRID_EXTRA}/sw/apps/intel16/compilers_and_libraries_2016.4.258/linux/bin/intel64/icpc"
+    RCM_CXXFLAGS=",gcc.cxxflags='-O3 -parallel'"
+  else
+    RCM_CXX="${RCM_GRID_EXTRA}/sw/apps/intel16/compilers_and_libraries_2016.4.258/linux/bin/intel64/icpc"
+    RCM_CXXFLAGS=""
+    echo "WARN: failed to load intel compiler, set to use g++"
   fi
 fi
+
+
+if test "x$THEANO_FLAGS" = "x"; then
+  export THEANO_FLAGS="openmp=True,cxx=$RCM_CXX$RCM_CXXFLAGS"
+fi
+
+RCM_GRID_EXTRA=""
 
 # Return to original dir
 $dopop && popd > /dev/null
