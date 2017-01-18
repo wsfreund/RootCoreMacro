@@ -1,3 +1,5 @@
+#!/bin/bash
+
 show_help() {
 cat << EOF
 Usage: ${0##*/} [--clean|--veryclean|--distclean] [--no-build] [--cleanenv] [--grid]
