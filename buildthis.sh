@@ -206,7 +206,7 @@ test $clean -eq "1" && "$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc" clean
 if test $veryclean -eq 1 -o $cleanenv -eq 1; then
   echo "cleaning environment-files..."
   # Remove old environment files (to be sure that we won't have old files on the environment):
-  for file in `find -L "$ROOTCOREBIN/.." -maxdepth 3 -mindepth 3 -path "*/cmt/*" -name "$BASE_NEW_ENV_FILE" `
+  for file in $(find -L "$ROOTCOREBIN/.." -maxdepth 3 -mindepth 3 -path "*/cmt/*" -name "$BASE_NEW_ENV_FILE" )
   do
     test -x "$file" && rm "$file"
   done
@@ -223,7 +223,7 @@ source ./setrootcore.sh --silent "--grid=$grid" "--no-cvmfs=$NO_CVMFS"
 if test $nobuild -eq "0"; then
   # Pre-compile
   echo "running pre-compile..."
-  for file in `find -L "$ROOTCOREBIN/.." -maxdepth 3 -mindepth 3 -path "*/cmt/*" -name "precompile.RootCore" `
+  for file in $(find -L "$ROOTCOREBIN/.." -maxdepth 3 -mindepth 3 -path "*/cmt/*" -name "precompile.RootCore" )
   do
     # TODO: This may give errors due to pre-compilation order, should it be muted
     # or sourced in the correct order?

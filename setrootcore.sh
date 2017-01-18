@@ -173,18 +173,20 @@ then
 fi
 
 # Get sourced script absolute path
-if test -n "`$SHELL -c 'echo $ZSH_VERSION'`"; then
-  script_place="$(dirname $(readlink -f "$0"))"
-elif test -n "`$SHELL -c 'echo $BASH_VERSION'`"; then
-  script_place=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
-elif test "$(basename "$SHELL")" = "zsh"; then
-  script_place="$(dirname $(readlink -f "$0"))"
-elif test "$(basename "$SHELL")" = "bash"; then
-  script_place=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
-elif test "$grid" -eq "1"; then
+if test "$grid" -eq "1"; then
   script_place=$PWD
 else
-  printf "ERROR: Unsupported shell." >&2 && return 1;
+  if test -n "$($SHELL -c 'echo $ZSH_VERSION')"; then
+    script_place="$(dirname $(readlink -f "$0"))"
+  elif test -n "$($SHELL -c 'echo $BASH_VERSION')"; then
+    script_place=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+  elif test "$(basename "$SHELL")" = "zsh"; then
+    script_place="$(dirname $(readlink -f "$0"))"
+  elif test "$(basename "$SHELL")" = "bash"; then
+    script_place=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+  else
+    printf "ERROR: Unsupported shell." >&2 && return 1;
+  fi
 fi
 test $(basename "$script_place") = "RootCoreMacros" && script_place="$(dirname $script_place)"
 
@@ -265,7 +267,7 @@ source "$ROOTCOREBIN/../RootCoreMacros/base_env.sh"
 
 # Add environment variables
 if test $NO_ENV_SETUP -eq "0"; then
-  for file in `find -L "$ROOTCOREBIN/.." -maxdepth 3 -mindepth 3 -path "*/cmt/*" -name "$BASE_NEW_ENV_FILE" `
+  for file in $(find -L "$ROOTCOREBIN/.." -maxdepth 3 -mindepth 3 -path "*/cmt/*" -name "$BASE_NEW_ENV_FILE")
   do
     test -x "$file" && source "$file" && { test "$silent" -eq 0 && echo "Adding $file to environment"; }
   done
