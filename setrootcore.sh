@@ -106,8 +106,10 @@ while :; do
     --grid)
       if [ ${2#--} != $2 ]; then
         RCM_GRID_ENV=1
+        grid=1
       else
         RCM_GRID_ENV=$2
+        grid=1
         shift 2
         continue
       fi
