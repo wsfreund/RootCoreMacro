@@ -200,15 +200,15 @@ test "$PWD" != "$script_place" && pushd $script_place > /dev/null && dopop=true
 if test -e "$ATLAS_LOCAL_ROOT_BASE" -a \! \( "$NO_CVMFS" != "0" \)
 then
   # cvmfs exists
-  source "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" > /dev/null
+  . "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" > /dev/null
   baseDir=$(basename "$ROOTCOREBIN")
   # We only set the environment if it wasn't set to the desired release:
-  if test "x${ROOTCOREBIN}" = "x" -o "$ROOTCOREBIN" != "$script_place/$baseDir" -o "${release/,/ }" != "$(source $ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh -M -q)"
+  if test "x${ROOTCOREBIN}" = "x" -o "$ROOTCOREBIN" != "$script_place/$baseDir" -o "${release/,/ }" != "$(. $ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh -M -q)"
   then
     # Unset previous rootcore
-    test "x${ROOTCOREBIN}" != "x" && source "$ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh" -u -q
+    test "x${ROOTCOREBIN}" != "x" && . "$ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh" -u -q
     # Set it and find packages:
-    source "$ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh" -q -f $release > /dev/null
+    . "$ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh" -q -f $release > /dev/null
     #"$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc" find_packages > /dev/null
   else
     test "$silent" -eq 0 && echo "Environment already set, did not set it again!"
@@ -265,13 +265,13 @@ fi
 test "x$ROOTCOREBIN" = "x" && echo "FAILED: For some reason ROOTCOREBIN is not set. Skipping..." && \
   { $dopop && popd > /dev/null || true; } && return 1
 
-source "$ROOTCOREBIN/../RootCoreMacros/base_env.sh"
+. "$ROOTCOREBIN/../RootCoreMacros/base_env.sh"
 
 # Add environment variables
 if test $NO_ENV_SETUP -eq "0"; then
   for file in $(find -L "$ROOTCOREBIN/.." -maxdepth 3 -mindepth 3 -path "*/cmt/*" -name "$BASE_NEW_ENV_FILE")
   do
-    test -x "$file" && source "$file" && { test "$silent" -eq 0 && echo "Adding $file to environment"; }
+    test -x "$file" && . "$file" && { test "$silent" -eq 0 && echo "Adding $file to environment"; }
   done
 fi
 

@@ -198,7 +198,7 @@ test $distclean -eq 1 && clean=1 && veryclean=1;
 
 test -n "$release" && srelease="--release=$release"
 # Set RootCore environment
-source ./setrootcore.sh --silent --no-env-setup "--grid=$grid" "--no-cvmfs=$NO_CVMFS" "$srelease"
+. ./setrootcore.sh --silent --no-env-setup "--grid=$grid" "--no-cvmfs=$NO_CVMFS" "$srelease"
 
 # Compile
 test $clean -eq "1" && "$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc" clean
@@ -218,7 +218,7 @@ if test $distclean -eq "1"; then
 fi
 
 # Now add the new environment files
-source ./setrootcore.sh --silent "--grid=$grid" "--no-cvmfs=$NO_CVMFS"
+. ./setrootcore.sh --silent "--grid=$grid" "--no-cvmfs=$NO_CVMFS"
 
 if test $nobuild -eq "0"; then
   # Pre-compile
@@ -228,7 +228,7 @@ if test $nobuild -eq "0"; then
     # TODO: This may give errors due to pre-compilation order, should it be muted
     # or sourced in the correct order?
     if test -x "$file"; then
-      pushd $(dirname $file) > /dev/null && $file && test -e "$(dirname $file)/${BASE_NEW_ENV_FILE}" && source "$(dirname $file)/${BASE_NEW_ENV_FILE}";
+      pushd $(dirname $file) > /dev/null && $file && test -e "$(dirname $file)/${BASE_NEW_ENV_FILE}" && . "$(dirname $file)/${BASE_NEW_ENV_FILE}";
       popd > /dev/null
     fi
   done
@@ -240,6 +240,6 @@ else
 fi
 
 # Finally, update user environment to the one needed by the installation
-source ./setrootcore.sh --silent "--grid=$grid" "--no-cvmfs=$NO_CVMFS"
+. ./setrootcore.sh --silent "--grid=$grid" "--no-cvmfs=$NO_CVMFS"
 
 true
