@@ -49,9 +49,9 @@ done
 
 source "$ROOTCOREBIN/../RootCoreMacros/base_env.sh" || { echo "Couldn't load base shell environment." && exit 1; }
 
-PYTHON_EXEC_PATH=`pyenv whence --path python 2>/dev/null || which python`
-if ! TRUE_PYTHON_EXEC_PATH=$(readlink -f "$PYTHON_EXEC_PATH" 2>/dev/null); then
-  if type realpath > /dev/null; then
+PYTHON_EXEC_PATH=`pyenv which --path python 2>/dev/null || which python`
+if ! TRUE_PYTHON_EXEC_PATH=$(readlink -f "$PYTHON_EXEC_PATH"); then
+  if type realpath > /dev/null 2> /dev/null; then
     TRUE_PYTHON_EXEC_PATH=$(realpath "$PYTHON_EXEC_PATH" 2>/dev/null)
   else
     echo "WARN: Couldn't retrieve python true path. Continuing assuming it is not a link." >&2
