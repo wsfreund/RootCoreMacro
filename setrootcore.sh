@@ -32,6 +32,7 @@ EOF
 silent=0
 grid=0
 release='Base,2.4.23'
+#release='Base,2.3.22'
 NO_ENV_SETUP=0
 NO_CVMFS=0
 RCM_NCPUS=""
@@ -116,6 +117,7 @@ while :; do
       ;;
     --grid=?*)
       RCM_GRID_ENV=${1#*=} # Delete everything up to "=" and assign the remainder.
+      grid=${1#*=}
       ;;
     --grid=)   # Handle the case of an empty --grid=
       echo 'ERROR: "--grid" requires a non-empty option argument.\n' >&2
@@ -200,15 +202,15 @@ test "$PWD" != "$script_place" && pushd $script_place > /dev/null && dopop=true
 if test -e "$ATLAS_LOCAL_ROOT_BASE" -a \! \( "$NO_CVMFS" != "0" \)
 then
   # cvmfs exists
-  . "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" > /dev/null
+  source "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" > /dev/null
   baseDir=$(basename "$ROOTCOREBIN")
   # We only set the environment if it wasn't set to the desired release:
-  if test "x${ROOTCOREBIN}" = "x" -o "$ROOTCOREBIN" != "$script_place/$baseDir" -o "${release/,/ }" != "$(. $ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh -M -q)"
+  if test "x${ROOTCOREBIN}" = "x" -o "$ROOTCOREBIN" != "$script_place/$baseDir" -o "${release/,/ }" != "$(source $ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh -M -q)"
   then
     # Unset previous rootcore
-    test "x${ROOTCOREBIN}" != "x" && . "$ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh" -u -q
+    test "x${ROOTCOREBIN}" != "x" && source "$ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh" -u -q
     # Set it and find packages:
-    . "$ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh" -q -f $release > /dev/null
+    source "$ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh" -q -f $release > /dev/null
     #"$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc" find_packages > /dev/null
   else
     test "$silent" -eq 0 && echo "Environment already set, did not set it again!"
@@ -238,7 +240,7 @@ else
       rm RootCore.tgz
     fi
   else 
-    test \! -e RootCore && echo "Couldn't find retrieve RootCore to compile in standalone." && \
+    test \! -e RootCore && echo "Couldn't find retrieve RootCore to compile in standalone." >&2 && \
       { $dopop && popd > /dev/null || true; } && return 1
   fi
   if test -e RootCore
@@ -256,22 +258,23 @@ else
       echo "Couldn't find_packages!"
     fi
   else
-    test "x${ROOTCOREBIN}" = "x" && echo "Cannot find RootCore dir. Something went wrong during the setup" && \
+    test "x${ROOTCOREBIN}" = "x" && echo "Cannot find RootCore dir. Something went wrong during the setup" >&2 && \
       { $dopop && popd > /dev/null || true; } && return 1
   fi
 fi
 
 # Check if everything was ok and load default environment.
-test "x$ROOTCOREBIN" = "x" && echo "FAILED: For some reason ROOTCOREBIN is not set. Skipping..." && \
+test "x${ROOTCOREBIN}" = "x" && echo "FAILED: For some reason ROOTCOREBIN is not set. Skipping..." >&2 && \
   { $dopop && popd > /dev/null || true; } && return 1
+test -f "${ROOTCOREBIN}/../RootCoreMacros/base_env.sh" || echo "Cannot find base_env.sh file!" >&2 && return 1;
 
-. "$ROOTCOREBIN/../RootCoreMacros/base_env.sh"
+source "${ROOTCOREBIN}/../RootCoreMacros/base_env.sh"
 
 # Add environment variables
 if test $NO_ENV_SETUP -eq "0"; then
   for file in $(find -L "$ROOTCOREBIN/.." -maxdepth 3 -mindepth 3 -path "*/cmt/*" -name "$BASE_NEW_ENV_FILE")
   do
-    test -x "$file" && . "$file" && { test "$silent" -eq 0 && echo "Adding $file to environment"; }
+    test -x "$file" && source "$file" && { test "$silent" -eq 0 && echo "Adding $file to environment"; }
   done
 fi
 
@@ -289,11 +292,11 @@ export GOTO_NUM_THREADS=$RCM_NCPUS; # GotoBLAS2
 export MKL_NUM_THREADS=$RCM_NCPUS; # Intel MKL
 export ROOTCORE_NCPUS=$RCM_NCPUS; # RootCore, just to prevent mistakes
 
-if test "$RCM_GRID_ENV" -eq "1"; then 
-  RCM_GRID_EXTRA="ssh service1 "
-fi
 
 if test -f "/sw/apps/intel16/compilers_and_libraries_2016.4.258/linux/bin/intel64/icpc"; then
+  if test "$RCM_GRID_ENV" -eq "1"; then 
+    RCM_GRID_EXTRA="ssh service1 "
+  fi
   if module load intel 2> /dev/null; then
     RCM_CXX="${RCM_GRID_EXTRA}/sw/apps/intel16/compilers_and_libraries_2016.4.258/linux/bin/intel64/icpc"
     RCM_CXXFLAGS=",gcc.cxxflags='-O3 -parallel'"
@@ -302,14 +305,13 @@ if test -f "/sw/apps/intel16/compilers_and_libraries_2016.4.258/linux/bin/intel6
     RCM_CXXFLAGS=""
     echo "WARN: failed to load intel compiler, set to use g++"
   fi
+  unset RCM_GRID_EXTRA
 fi
 
 
 if test "x$THEANO_FLAGS" = "x"; then
   export THEANO_FLAGS="openmp=True,cxx=$RCM_CXX$RCM_CXXFLAGS"
 fi
-
-RCM_GRID_EXTRA=""
 
 # Return to original dir
 $dopop && popd > /dev/null
