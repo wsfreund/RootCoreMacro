@@ -282,7 +282,8 @@ fi
 # Check if everything was ok and load default environment.
 test "x${ROOTCOREBIN}" = "x" && echo "FAILED: For some reason ROOTCOREBIN is not set. Skipping..." >&2 && \
   { $dopop && popd > /dev/null || true; } && return 1
-test -f "${ROOTCOREBIN}/../RootCoreMacros/base_env.sh" || { echo "Cannot find base_env.sh file!" >&2 && return 1 };
+
+test -e "${ROOTCOREBIN}/../RootCoreMacros/base_env.sh" || { echo "Cannot find base_env.sh file!" >&2 && return 1; }
 
 source "${ROOTCOREBIN}/../RootCoreMacros/base_env.sh"
 
