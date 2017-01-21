@@ -27,6 +27,8 @@ it won't change your shell environment and you may have issues using RootCore.
     --grid         Flag that compilation is for the grid environment. 
     --no-cvmfs     Ignore cvmfs if it is available and install it without
                    AnalysisBase.
+    --no-color     Set RCM_NO_COLOR flag to tell jobs to display uncolored 
+                   log messages
 EOF
 }
 
@@ -44,6 +46,8 @@ veryclean=0
 distclean=0
 nobuild=0
 NO_CVMFS=0
+RCM_NO_COLOR=0
+RCM_NCPUS=""
 release=
 
 while :; do
@@ -176,6 +180,39 @@ while :; do
       echo 'ERROR: "--grid" requires a non-empty option argument.\n' >&2
       test "$sourced" -eq 1 && return 1 || exit 1
       ;;
+    --no-color)
+      if [ ${2#--} != $2 ]; then
+        RCM_NO_COLOR=1
+      else
+        RCM_NO_COLOR=$2
+        shift 2
+        continue
+      fi
+      ;;
+    --no-color=?*)
+      RCM_NO_COLOR=${1#*=} # Delete everything up to "=" and assign the remainder.
+      ;;
+    --no-color=)       # Handle the case of an empty --no-cvmfs=
+      echo 'ERROR: "--no-color" requires a non-empty option argument.\n' >&2
+      return 1
+      ;;
+    --ncpus)
+      if [ ${2#--} != $2 ]; then
+        echo 'ERROR: "--ncpus" requires a non-empty option argument.\n' >&2
+        return 1
+      else
+        RCM_NCPUS=$2
+        shift 2
+        continue
+      fi
+      ;;
+    --ncpus=?*)
+      RCM_NCPUS=${1#*=} # Delete everything up to "=" and assign the remainder.
+      ;;
+    --ncpus=)   # Handle the case of an empty --grid=
+      echo 'ERROR: "--ncpus" requires a non-empty option argument.\n' >&2
+      return 1
+      ;;
     --with-?*)
       eval "export $(echo ${1#--with-} | tr "[a-z]" "[A-Z]" | tr "-" "_")=1" # Assign variable to true.
       ;;
@@ -197,8 +234,13 @@ test $veryclean -eq 1 && clean=1;
 test $distclean -eq 1 && clean=1 && veryclean=1;
 
 test -n "$release" && srelease="--release=$release"
+test -n "$RCM_NCPUS" && ncpus="--ncpus=$RCM_NCPUS"
 # Set RootCore environment
-source ./setrootcore.sh --silent --no-env-setup "--grid=$grid" "--no-cvmfs=$NO_CVMFS" "$srelease"
+source ./setrootcore.sh --silent --no-env-setup  "--no-color=$RCM_NO_COLOR" $ncpus "--grid=$grid" "--no-cvmfs=$NO_CVMFS" "$srelease"
+
+if test "x$ROOTCOREBIN" = "x"; then
+  echo "Couldn't set RootCore." && test "$sourced" -eq 1 && return 1 || exit 1;
+fi
 
 # Compile
 test $clean -eq "1" && "$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc" clean
@@ -218,7 +260,7 @@ if test $distclean -eq "1"; then
 fi
 
 # Now add the new environment files
-source ./setrootcore.sh --silent "--grid=$grid" "--no-cvmfs=$NO_CVMFS"
+source ./setrootcore.sh --silent "--grid=$grid" "--no-color=$RCM_NO_COLOR" "--no-cvmfs=$NO_CVMFS" "$ncpus" 
 
 if test $nobuild -eq "0"; then
   # Pre-compile
@@ -240,6 +282,6 @@ else
 fi
 
 # Finally, update user environment to the one needed by the installation
-source ./setrootcore.sh --silent "--grid=$grid" "--no-cvmfs=$NO_CVMFS"
+source ./setrootcore.sh --silent "--grid=$grid" "--no-cvmfs=$NO_CVMFS"  "--no-color=$RCM_NO_COLOR" "$ncpus"
 
 true

@@ -25,18 +25,21 @@ no CVMFS access.
     --ncpus           Flag the number of cpus to use
     --no-cvmfs        Ignore cvmfs if it is available and install it without
                       AnalysisBase.
+    --no-color        Set RCM_NO_COLOR flag to tell jobs to display uncolored 
+                      log messages
 EOF
 }
 
 # Default values
 silent=0
-grid=0
 release='Base,2.4.23'
 #release='Base,2.3.22'
 NO_ENV_SETUP=0
 NO_CVMFS=0
-RCM_NCPUS=""
 account=$(whoami)
+export RCM_GRID_ENV=0
+export RCM_NO_COLOR=0
+export RCM_NCPUS=""
 
 while :; do
   case $1 in
@@ -104,20 +107,33 @@ while :; do
       echo 'ERROR: "--no-cvmfs" requires a non-empty option argument.\n' >&2
       return 1
       ;;
+    --no-color)
+      if [ ${2#--} != $2 ]; then
+        RCM_NO_COLOR=1
+      else
+        RCM_NO_COLOR=$2
+        shift 2
+        continue
+      fi
+      ;;
+    --no-color=?*)
+      RCM_NO_COLOR=${1#*=} # Delete everything up to "=" and assign the remainder.
+      ;;
+    --no-color=)       # Handle the case of an empty --no-cvmfs=
+      echo 'ERROR: "--no-color" requires a non-empty option argument.\n' >&2
+      return 1
+      ;;
     --grid)
       if [ ${2#--} != $2 ]; then
         RCM_GRID_ENV=1
-        grid=1
       else
         RCM_GRID_ENV=$2
-        grid=1
         shift 2
         continue
       fi
       ;;
     --grid=?*)
       RCM_GRID_ENV=${1#*=} # Delete everything up to "=" and assign the remainder.
-      grid=${1#*=}
       ;;
     --grid=)   # Handle the case of an empty --grid=
       echo 'ERROR: "--grid" requires a non-empty option argument.\n' >&2
@@ -136,7 +152,7 @@ while :; do
     --ncpus=?*)
       RCM_NCPUS=${1#*=} # Delete everything up to "=" and assign the remainder.
       ;;
-    --ncpus=)   # Handle the case of an empty --grid=
+    --ncpus=)   # Handle the case of an empty --ncpus=
       echo 'ERROR: "--ncpus" requires a non-empty option argument.\n' >&2
       return 1
       ;;
@@ -177,7 +193,7 @@ then
 fi
 
 # Get sourced script absolute path
-if test "$grid" -eq "1"; then
+if test "$RCM_GRID_ENV" -eq "1"; then
   script_place=$PWD
 else
   if test -n "$($SHELL -c 'echo $ZSH_VERSION')"; then
@@ -266,7 +282,7 @@ fi
 # Check if everything was ok and load default environment.
 test "x${ROOTCOREBIN}" = "x" && echo "FAILED: For some reason ROOTCOREBIN is not set. Skipping..." >&2 && \
   { $dopop && popd > /dev/null || true; } && return 1
-test -f "${ROOTCOREBIN}/../RootCoreMacros/base_env.sh" || echo "Cannot find base_env.sh file!" >&2 && return 1;
+test -f "${ROOTCOREBIN}/../RootCoreMacros/base_env.sh" || { echo "Cannot find base_env.sh file!" >&2 && return 1 };
 
 source "${ROOTCOREBIN}/../RootCoreMacros/base_env.sh"
 
@@ -278,9 +294,7 @@ if test $NO_ENV_SETUP -eq "0"; then
   done
 fi
 
-export RCM_GRID_ENV
-
-# Override number of cores if in grid environment:
+# Override number of cores
 if test "x$RCM_NCPUS" = "x"; then
   export RCM_NCPUS=$ROOTCORE_NCPUS
 fi
