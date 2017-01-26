@@ -221,16 +221,21 @@ then
   source "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" > /dev/null
   baseDir=$(basename "$ROOTCOREBIN")
   # We only set the environment if it wasn't set to the desired release:
+  if test "x${ROOTCOREBIN}" = "x"; then
+    test -e "$script_place/rcSetup.sh" && export ATLAS_LOCAL_ROOT_BASE=$script_place;
+  fi
   if test "x${ROOTCOREBIN}" = "x" -o "$ROOTCOREBIN" != "$script_place/$baseDir" -o "${release/,/ }" != "$(source $ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh -M -q)"
   then
     # Unset previous rootcore
     test "x${ROOTCOREBIN}" != "x" && source "$ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh" -u -q
+    echo "If you had local packages versions from available rootcore packages, it will be needed to source buildthis.sh to make them available on the new RootCore version."
     # Set it and find packages:
     source "$ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh" -q -f $release > /dev/null
     #"$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc" find_packages > /dev/null
   else
     test "$silent" -eq 0 && echo "Environment already set, did not set it again!"
   fi
+
 else 
   unset ATLAS_LOCAL_ROOT_BASE
   if test \! -e RootCore
