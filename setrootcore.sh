@@ -228,9 +228,11 @@ then
   then
     # Unset previous rootcore
     test "x${ROOTCOREBIN}" != "x" && source "$ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh" -u -q
-    echo "If you had local packages versions from available rootcore packages, it will be needed to source buildthis.sh to make them available on the new RootCore version."
     # Set it and find packages:
-    source "$ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh" -q -f $release > /dev/null
+    lrelease=""
+    test "${release/,/ }" != "$(source $ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh -M -q)" && lrelease="$release"
+    source "$ATLAS_LOCAL_RCSETUP_PATH/rcSetup.sh" -f $lrelease > /dev/null
+    unset lrelease
     #"$ROOTCOREBIN/bin/$ROOTCORECONFIG/rc" find_packages > /dev/null
   else
     test "$silent" -eq 0 && echo "Environment already set, did not set it again!"
