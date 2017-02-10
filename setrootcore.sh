@@ -221,6 +221,7 @@ then
   source "${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh" > /dev/null
   baseDir=$(basename "$ROOTCOREBIN")
   # We only set the environment if it wasn't set to the desired release:
+  # FIXME This will fail when rcSetup is already available and points to an old version
   if test "x${ROOTCOREBIN}" = "x"; then
     test -e "$script_place/rcSetup.sh" && export ATLAS_LOCAL_ROOT_BASE=$script_place;
   fi
