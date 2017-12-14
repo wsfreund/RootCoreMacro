@@ -312,20 +312,24 @@ if test -f "/sw/apps/intel16/compilers_and_libraries_2016.4.258/linux/bin/intel6
   if test "$RCM_GRID_ENV" -eq "1"; then 
     RCM_GRID_EXTRA="ssh service1 "
   fi
-  if module load intel 2> /dev/null; then
-    RCM_CXX="${RCM_GRID_EXTRA}/sw/apps/intel16/compilers_and_libraries_2016.4.258/linux/bin/intel64/icpc"
-    RCM_CXXFLAGS=",gcc.cxxflags='-O3 -parallel'"
+  if module display intel > /dev/null 2> /dev/null; then
+    RCM_THEANO_CXX="${RCM_GRID_EXTRA}/sw/apps/intel16/compilers_and_libraries_2016.4.258/linux/bin/intel64/icpc"
+    RCM_THEANO_CXXFLAGS=",gcc.cxxflags='-O3 -parallel'"
   else
-    RCM_CXX="${RCM_GRID_EXTRA}/sw/apps/intel16/compilers_and_libraries_2016.4.258/linux/bin/intel64/icpc"
-    RCM_CXXFLAGS=""
-    echo "WARN: failed to load intel compiler, set to use g++"
+    echo "WARN: failed to load intel compiler, set to use cxx"
+    RCM_THEANO_CXX="$(which cxx)"
+    RCM_THEANO_CXXFLAGS=",gcc.cxxflags='-O3 -parallel'"
   fi
   unset RCM_GRID_EXTRA
 fi
 
 
 if test "x$THEANO_FLAGS" = "x"; then
-  export THEANO_FLAGS="openmp=True,cxx=$RCM_CXX$RCM_CXXFLAGS"
+  if test "$RCM_THEANO_CXX"; then
+    export THEANO_FLAGS="openmp=True,cxx=$RCM_THEANO_CXX$RCM_THEANO_CXXFLAGS"
+  else
+    export THEANO_FLAGS="openmp=True"
+  fi
 fi
 
 # Return to original dir
